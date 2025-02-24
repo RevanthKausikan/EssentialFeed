@@ -9,8 +9,14 @@ import Testing
 @testable import EssentialFeed
 
 struct RemoteFeedLoader {
+    let client: HTTPClient
+    
+    init(client: HTTPClient) {
+        self.client = client
+    }
+    
     func load() {
-        HTTPClient.shared.get(from: URL(string: "www.any-url.com")!)
+        client.get(from: URL(string: "www.any-url.com")!)
     }
 }
 
@@ -34,8 +40,7 @@ struct RemoteFeedLoaderTests {
     @Test
     func init_doesNotRequestDataFromURL() {
         let client = HTTPClientSpy()
-        HTTPClient.shared = client
-        let _ = RemoteFeedLoader()
+        let _ = RemoteFeedLoader(client: client)
         
         #expect(client.requestedURL == nil)
     }
@@ -43,8 +48,7 @@ struct RemoteFeedLoaderTests {
     @Test
     func load_requestsDataFromURL() {
         let client = HTTPClientSpy()
-        HTTPClient.shared = client
-        let sut = RemoteFeedLoader()
+        let sut = RemoteFeedLoader(client: client)
         
         sut.load()
         
