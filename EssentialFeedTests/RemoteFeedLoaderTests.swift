@@ -36,25 +36,29 @@ final class HTTPClientSpy: HTTPClient {
 
 
 struct RemoteFeedLoaderTests {
-
     @Test
     func init_doesNotRequestDataFromURL() {
-        let client = HTTPClientSpy()
-        let url = URL(string: "www.any-url.com")!
-        let _ = RemoteFeedLoader(url: url,client: client)
+        let (_, client) = makeSUT()
         
         #expect(client.requestedURL == nil)
     }
     
     @Test
     func load_requestsDataFromURL() {
-        let client = HTTPClientSpy()
-        let url = URL(string: "www.any-url.com")!
-        let sut = RemoteFeedLoader(url: url, client: client)
+        let url = URL(string: "www.any-one-url.com")!
+        let (sut, client) = makeSUT(url: url)
         
         sut.load()
         
         #expect(client.requestedURL == url)
     }
+}
 
+// MARK: - Helpers
+extension RemoteFeedLoaderTests {
+    private func makeSUT(url: URL = URL(string: "www.any-url.com")!) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
+        let client = HTTPClientSpy()
+        let sut = RemoteFeedLoader(url: url,client: client)
+        return (sut, client)
+    }
 }
