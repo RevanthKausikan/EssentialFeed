@@ -26,15 +26,6 @@ protocol HTTPClient {
     func get(from url: URL)
 }
 
-final class HTTPClientSpy: HTTPClient {
-    var requestedURL: URL?
-    
-    func get(from url: URL) {
-        requestedURL = url
-    }
-}
-
-
 struct RemoteFeedLoaderTests {
     @Test
     func init_doesNotRequestDataFromURL() {
@@ -60,5 +51,13 @@ extension RemoteFeedLoaderTests {
         let client = HTTPClientSpy()
         let sut = RemoteFeedLoader(url: url,client: client)
         return (sut, client)
+    }
+    
+    private final class HTTPClientSpy: HTTPClient {
+        var requestedURL: URL?
+        
+        func get(from url: URL) {
+            requestedURL = url
+        }
     }
 }
