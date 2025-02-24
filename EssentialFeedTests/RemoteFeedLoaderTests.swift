@@ -20,9 +20,7 @@ struct RemoteFeedLoader {
     }
 }
 
-class HTTPClient {
-    static var shared = HTTPClient()
-    
+class HTTPClient {    
     func get(from url: URL) { }
 }
 
