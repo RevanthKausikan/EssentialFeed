@@ -20,14 +20,14 @@ struct RemoteFeedLoader {
     }
 }
 
-class HTTPClient {    
-    func get(from url: URL) { }
+protocol HTTPClient {
+    func get(from url: URL)
 }
 
 final class HTTPClientSpy: HTTPClient {
     var requestedURL: URL?
     
-    override func get(from url: URL) {
+    func get(from url: URL) {
         requestedURL = url
     }
 }
