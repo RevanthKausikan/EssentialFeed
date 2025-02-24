@@ -9,21 +9,32 @@ import Testing
 import EssentialFeed
 
 struct RemoteFeedLoaderTests {
-    @Test
+    @Test("init does not request data from URL")
     func init_doesNotRequestDataFromURL() {
         let (_, client) = makeSUT()
         
-        #expect(client.requestedURL == nil)
+        #expect(client.requestedURLs.isEmpty)
     }
     
-    @Test
+    @Test("load requests data from URL")
     func load_requestsDataFromURL() {
         let url = URL(string: "www.any-one-url.com")!
         let (sut, client) = makeSUT(url: url)
         
         sut.load()
         
-        #expect(client.requestedURL == url)
+        #expect(client.requestedURLs == [url])
+    }
+    
+    @Test("load twice requests data from URL twice")
+    func loadTwice_requestsDataFromURLTwice() {
+        let url = URL(string: "www.any-one-url.com")!
+        let (sut, client) = makeSUT(url: url)
+        
+        sut.load()
+        sut.load()
+        
+        #expect(client.requestedURLs == [url, url])
     }
 }
 
@@ -36,10 +47,10 @@ extension RemoteFeedLoaderTests {
     }
     
     private final class HTTPClientSpy: HTTPClient {
-        var requestedURL: URL?
+        var requestedURLs = [URL]()
         
         func get(from url: URL) {
-            requestedURL = url
+            requestedURLs.append(url)
         }
     }
 }
