@@ -87,10 +87,9 @@ struct RemoteFeedLoaderTests {
                                              description: "some description",
                                              location: "some location",
                                              imageURL: URL(string: "some-other-url.com")!)
-        let itemsJSON = ["items": [item1JSON, item2JSON]]
         
         expect(sut, toCompleteWithResult: .success([item1, item2]), when: {
-            let itemsData = try! JSONSerialization.data(withJSONObject: itemsJSON)
+            let itemsData = makeItemsJSON(using: [item1JSON, item2JSON])
             client.complete(withStatusCode: 200, data: itemsData)
         })
     }
@@ -127,6 +126,11 @@ extension RemoteFeedLoaderTests {
         ].compactMapValues { $0 }
         
         return (item, itemJSON)
+    }
+    
+    private func makeItemsJSON(using items: [[String: Any]]) -> Data {
+        let itemsJSON = ["items": items]
+        return try! JSONSerialization.data(withJSONObject: itemsJSON)
     }
     
     private final class HTTPClientSpy: HTTPClient {
