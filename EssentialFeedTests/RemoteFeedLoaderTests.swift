@@ -49,14 +49,14 @@ struct RemoteFeedLoaderTests {
         #expect(capturedErrors == [.connectivityError])
     }
     
-    @Test("load returns Error on response other than 200")
-    func load_returnsError_onResponseOtherThan200() {
+    @Test("load returns Error on response other than 200", arguments: [199, 200, 300, 400, 500])
+    func load_returnsError_onResponseOtherThan200(statusCode: Int) {
         let (sut, client) = makeSUT()
         
         var capturedErrors = [RemoteFeedLoader.Error]()
         sut.load { capturedErrors.append($0) }
         
-        client.complete(withStatusCode: 400)
+        client.complete(withStatusCode: statusCode)
         
         #expect(capturedErrors == [.invalidData])
     }
