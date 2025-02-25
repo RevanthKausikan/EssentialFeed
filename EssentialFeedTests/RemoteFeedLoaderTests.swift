@@ -65,6 +65,19 @@ struct RemoteFeedLoaderTests {
             client.complete(withStatusCode: 200, data: invalidJSON)
         })
     }
+    
+    @Test("load returns empty list on empty JSON")
+    func load_returnsEmptyList_onEmptyJSON() {
+        let (sut, client) = makeSUT()
+        
+        var capturedResults = [RemoteFeedLoader.Result]()
+        sut.load { capturedResults.append($0) }
+        
+        let emptyJSON = Data(#"{"items": []}"#.utf8)
+        client.complete(withStatusCode: 200, data: emptyJSON)
+        
+        #expect(capturedResults.first == .success([]))
+    }
 }
 
 // MARK: - Helpers
