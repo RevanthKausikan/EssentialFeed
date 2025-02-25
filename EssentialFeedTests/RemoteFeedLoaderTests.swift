@@ -41,7 +41,7 @@ struct RemoteFeedLoaderTests {
     func load_returnsError_onClientError() {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithError: .connectivityError, when: {
+        expect(sut, toCompleteWithResult: .failure(.connectivityError), when: {
             let clientError = NSError(domain: "Test", code: 0)
             client.complete(with: clientError)
         })
@@ -51,7 +51,7 @@ struct RemoteFeedLoaderTests {
     func load_returnsError_onResponseOtherThan200(statusCode: Int) {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithError: .invalidData, when: {
+        expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
             client.complete(withStatusCode: statusCode)
         })
     }
@@ -60,7 +60,7 @@ struct RemoteFeedLoaderTests {
     func load_returnsError_onResponse200_andInvalidJSON() {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithError: .invalidData, when: {
+        expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
             let invalidJSON = Data("invalid_json".utf8)
             client.complete(withStatusCode: 200, data: invalidJSON)
         })
@@ -89,7 +89,7 @@ extension RemoteFeedLoaderTests {
     }
     
     private func expect(_ sut: RemoteFeedLoader,
-                        toCompleteWithError error: RemoteFeedLoader.Error,
+                        toCompleteWithResult result: RemoteFeedLoader.Result,
                         when action: () -> Void,
                         sourceLocation: SourceLocation = .__here()) {
         var capturedResults = [RemoteFeedLoader.Result]()
@@ -97,7 +97,7 @@ extension RemoteFeedLoaderTests {
         
         action()
         
-        #expect(capturedResults == [.failure(error)], sourceLocation: sourceLocation)
+        #expect(capturedResults == [result], sourceLocation: sourceLocation)
     }
     
     private final class HTTPClientSpy: HTTPClient {
