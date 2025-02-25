@@ -72,7 +72,7 @@ struct RemoteFeedLoaderTests {
         let (sut, client) = makeSUT()
         
         expect(sut, toCompleteWithResult: .success([]), when: {
-            let emptyJSON = Data(#"{"items": []}"#.utf8)
+            let emptyJSON = makeItemsJSON(using: [])
             client.complete(withStatusCode: 200, data: emptyJSON)
         })
     }
