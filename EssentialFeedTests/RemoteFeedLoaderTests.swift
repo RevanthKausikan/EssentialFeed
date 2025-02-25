@@ -79,12 +79,12 @@ extension RemoteFeedLoaderTests {
                         toCompleteWithError error: RemoteFeedLoader.Error,
                         when action: () -> Void,
                         sourceLocation: SourceLocation = .__here()) {
-        var capturedErrors = [RemoteFeedLoader.Error]()
-        sut.load { capturedErrors.append($0) }
+        var capturedResults = [RemoteFeedLoader.Result]()
+        sut.load { capturedResults.append($0) }
         
         action()
         
-        #expect(capturedErrors == [error], sourceLocation: sourceLocation)
+        #expect(capturedResults == [.failure(error)], sourceLocation: sourceLocation)
     }
     
     private final class HTTPClientSpy: HTTPClient {
