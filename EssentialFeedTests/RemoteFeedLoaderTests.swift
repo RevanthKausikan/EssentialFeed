@@ -47,12 +47,13 @@ struct RemoteFeedLoaderTests {
         })
     }
     
-    @Test("load returns Error on response other than 200", arguments: [199, 200, 300, 400, 500])
+    @Test("load returns Error on response other than 200", arguments: [199, 201, 300, 400, 500])
     func load_returnsError_onResponseOtherThan200(statusCode: Int) {
         let (sut, client) = makeSUT()
         
         expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
-            client.complete(withStatusCode: statusCode)
+            let emptyItemsData = makeItemsJSON(using: [])
+            client.complete(withStatusCode: statusCode, data: emptyItemsData)
         })
     }
     
@@ -147,7 +148,7 @@ extension RemoteFeedLoaderTests {
             messages[index].completion(.failure(error))
         }
         
-        func complete(withStatusCode statusCode: Int, data: Data = Data(), at index: Int = 0) {
+        func complete(withStatusCode statusCode: Int, data: Data, at index: Int = 0) {
             let response = HTTPURLResponse(url: requestedURLs[index],
                                            statusCode: statusCode,
                                            httpVersion: nil,
