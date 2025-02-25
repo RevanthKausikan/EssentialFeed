@@ -92,14 +92,14 @@ struct RemoteFeedLoaderTests {
         
         let item1JSON = [
             "id": item1.id.uuidString,
-            "url": item1.url.absoluteString
+            "url": item1.imageURL.absoluteString
         ]
         
         let item2JSON = [
             "id": item2.id.uuidString,
             "description": item2.description,
             "location": item2.location,
-            "url": item2.url.absoluteString
+            "url": item2.imageURL.absoluteString
         ]
         
         let itemsJSON = [
