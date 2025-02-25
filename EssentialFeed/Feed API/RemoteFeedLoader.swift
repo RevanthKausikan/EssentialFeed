@@ -5,6 +5,11 @@
 //  Created by Revanth Kausikan on 24/02/25.
 //
 
+public enum HTTPClientResult {
+    case success(HTTPURLResponse)
+    case failure(Error)
+}
+
 public struct RemoteFeedLoader {
     let url: URL
     let client: HTTPClient
@@ -19,16 +24,15 @@ public struct RemoteFeedLoader {
     }
     
     public func load(completion: @escaping (Error) -> Void) {
-        client.get(from: url) { error, response in
-            if response != nil {
-                completion(.invalidData)
-            } else {
-                completion(.connectivityError)
+        client.get(from: url) { result in
+            switch result {
+            case .success(_): completion(.invalidData)
+            case .failure(_): completion(.connectivityError)
             }
         }
     }
 }
 
 public protocol HTTPClient {
-    func get(from url: URL, completion: @escaping (Error?, HTTPURLResponse?) -> Void)
+    func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void)
 }
