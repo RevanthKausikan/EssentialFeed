@@ -41,24 +41,19 @@ struct RemoteFeedLoaderTests {
     func load_returnsError_onClientError() {
         let (sut, client) = makeSUT()
         
-        var capturedErrors = [RemoteFeedLoader.Error]()
-        sut.load { capturedErrors.append($0) }
-        let clientError = NSError(domain: "Test", code: 0)
-        client.complete(with: clientError)
-        
-        #expect(capturedErrors == [.connectivityError])
+        expect(sut, toCompleteWithError: .connectivityError, when: {
+            let clientError = NSError(domain: "Test", code: 0)
+            client.complete(with: clientError)
+        })
     }
     
     @Test("load returns Error on response other than 200", arguments: [199, 200, 300, 400, 500])
     func load_returnsError_onResponseOtherThan200(statusCode: Int) {
         let (sut, client) = makeSUT()
         
-        var capturedErrors = [RemoteFeedLoader.Error]()
-        sut.load { capturedErrors.append($0) }
-        
-        client.complete(withStatusCode: statusCode)
-        
-        #expect(capturedErrors == [.invalidData])
+        expect(sut, toCompleteWithError: .invalidData, when: {
+            client.complete(withStatusCode: statusCode)
+        })
     }
     
     @Test("load returns Error on Invalid JSON")
