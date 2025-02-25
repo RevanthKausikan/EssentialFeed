@@ -75,6 +75,42 @@ struct RemoteFeedLoaderTests {
             client.complete(withStatusCode: 200, data: emptyJSON)
         })
     }
+    
+    @Test("load returns actual list based on given JSON")
+    func load_returnsList_basedOnJSON() {
+        let (sut, client) = makeSUT()
+        
+        let item1 = FeedItem(id: UUID(),
+                             description: nil,
+                             location: nil,
+                             url: URL(string: "some-url.com")!)
+        
+        let item2 = FeedItem(id: UUID(),
+                             description: "some description",
+                             location: "some location",
+                             url: URL(string: "some-other-url.com")!)
+        
+        let item1JSON = [
+            "id": item1.id.uuidString,
+            "url": item1.url.absoluteString
+        ]
+        
+        let item2JSON = [
+            "id": item2.id.uuidString,
+            "description": item2.description,
+            "location": item2.location,
+            "url": item2.url.absoluteString
+        ]
+        
+        let itemsJSON = [
+            "items": [item1JSON, item2JSON]
+        ]
+        
+        expect(sut, toCompleteWithResult: .success([item1, item2]), when: {
+            let itemsData = try! JSONSerialization.data(withJSONObject: itemsJSON)
+            client.complete(withStatusCode: 200, data: itemsData)
+        })
+    }
 }
 
 // MARK: - Helpers
