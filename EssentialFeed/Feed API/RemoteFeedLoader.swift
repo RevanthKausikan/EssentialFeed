@@ -6,7 +6,7 @@
 //
 
 public enum HTTPClientResult {
-    case success(HTTPURLResponse)
+    case success(Data, HTTPURLResponse)
     case failure(Error)
 }
 
@@ -26,8 +26,8 @@ public struct RemoteFeedLoader {
     public func load(completion: @escaping (Error) -> Void) {
         client.get(from: url) { result in
             switch result {
-            case .success(_): completion(.invalidData)
-            case .failure(_): completion(.connectivityError)
+            case .success: completion(.invalidData)
+            case .failure: completion(.connectivityError)
             }
         }
     }
