@@ -23,17 +23,6 @@ final class URLSessionHTTPClient {
 }
 
 struct URLSessionHTTPClientTests {
-    @Test("Get requests from URL - Create - captures data task with URL")
-    func getFromURL_createsDataTaskWithURL() {
-        let url = URL(string: "any-url.com")!
-        let session = URLSessionSpy()
-        let sut = URLSessionHTTPClient(session: session)
-        
-        sut.get(from: url)
-        
-        #expect(session.receivedURLs == [url])
-    }
-    
     @Test("Get requests from URL - Resume - captures data task with URL")
     func getFromURL_resumesDataTaskWithURL() {
         let url = URL(string: "any-url.com")!
@@ -61,7 +50,6 @@ struct URLSessionHTTPClientTests {
 
 // MARK: - Helpers
 fileprivate final class URLSessionSpy: URLSession, @unchecked Sendable {
-    var receivedURLs = [URL]()
     private var stubs = [URL: Stub]()
     
     private struct Stub {
@@ -74,14 +62,11 @@ fileprivate final class URLSessionSpy: URLSession, @unchecked Sendable {
     }
     
     override func dataTask(with request: URLRequest, completionHandler: @escaping (Data?, URLResponse?, (any Error)?) -> Void) -> URLSessionDataTask {
-        if let url = request.url {
-            receivedURLs.append(url)
-            if let stub = stubs[url] {
-                completionHandler(nil, nil, stub.error)
-                return stub.task
-            }
+        guard let url = request.url, let stub = stubs[url] else {
+            fatalError("Couldn't find stub for \(request.url!).")
         }
-        return FakeURLSessionDataTask()
+        completionHandler(nil, nil, stub.error)
+        return stub.task
     }
 }
 
