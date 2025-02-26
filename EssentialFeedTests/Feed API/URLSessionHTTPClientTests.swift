@@ -25,7 +25,26 @@ final class URLSessionHTTPClient {
     }
 }
 
+@Suite(.serialized)
 struct URLSessionHTTPClientTests {
+    @Test("Get from URL - performs GET request with URL")
+    func getFromURL_performsGETRequestWithURL() async {
+        URLProtocolStub.startInterceptingRequests()
+        
+        await withCheckedContinuation { continuation in
+            let url = URL(string: "any-url.com")!
+            URLProtocolStub.observeRequests { request in
+                #expect(request.httpMethod == "GET")
+                #expect(request.url == url)
+            }
+            URLSessionHTTPClient().get(from: url) { _ in }
+            continuation.resume()
+        }
+        
+        
+        URLProtocolStub.stopInterceptingRequests()
+    }
+    
     @Test("Get from URL - fails with request error")
     func getFromURL_failsWithRequestError() async {
         URLProtocolStub.startInterceptingRequests()
@@ -55,6 +74,7 @@ struct URLSessionHTTPClientTests {
 // MARK: - Helpers
 fileprivate final class URLProtocolStub: URLProtocol {
     private static var stub: Stub?
+    private static var requestObserver: ((URLRequest) -> Void)?
     
     private struct Stub {
         let data: Data?
@@ -66,6 +86,10 @@ fileprivate final class URLProtocolStub: URLProtocol {
         stub = Stub(data: data, response: response, error: error)
     }
     
+    static func observeRequests(observer: @escaping (URLRequest) -> Void) {
+        requestObserver = observer
+    }
+    
     static func startInterceptingRequests() {
         URLProtocol.registerClass(URLProtocolStub.self)
     }
@@ -73,10 +97,12 @@ fileprivate final class URLProtocolStub: URLProtocol {
     static func stopInterceptingRequests() {
         URLProtocol.unregisterClass(URLProtocolStub.self)
         stub = nil
+        requestObserver = nil
     }
     
     override class func canInit(with request: URLRequest) -> Bool {
-        true
+        requestObserver?(request)
+        return true
     }
     
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
