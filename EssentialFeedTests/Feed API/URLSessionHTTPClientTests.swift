@@ -128,41 +128,46 @@ extension URLSessionHTTPClientTests {
     private func resultValuesFor(data: Data?, response: URLResponse?, error: Error?,
                                  fileID: String = #fileID, filePath: String = #filePath,
                                  line: Int = #line, column: Int = #column) async -> (data: Data, response: HTTPURLResponse)? {
-        URLProtocolStub.stub(data: data, response: response, error: error)
-        let sut = makeSUT(fileID: fileID, filePath: filePath, line: line, column: column)
+        let result = await resultFor(data: data, response: response, error: error,
+                                     fileID: fileID, filePath: filePath, line: line, column: column)
         
-        var capturedValues: (data: Data, response: HTTPURLResponse)?
-        await withCheckedContinuation { continuation in
-            sut.get(from: anyURL) { result in
-                switch result {
-                case .success(let data, let response): capturedValues = (data, response)
-                default: Issue.record("expected success, but got \(result).",
-                                      sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
-                }
-                continuation.resume()
-            }
+        switch result {
+        case .success(let data, let response): return (data, response)
+        default:
+            Issue.record("expected success, but got \(result).",
+                         sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+            return nil
         }
-        return capturedValues
     }
     
     private func resultErrorFor(data: Data?, response: URLResponse?, error: Error?,
                                 fileID: String = #fileID, filePath: String = #filePath,
                                 line: Int = #line, column: Int = #column) async -> Error? {
+        let result = await resultFor(data: data, response: response, error: error,
+                                     fileID: fileID, filePath: filePath, line: line, column: column)
+        switch result {
+        case .failure(let error): return error
+        default:
+            Issue.record("expected failure, but got \(result).",
+                         sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+            return nil
+        }
+    }
+    
+    private func resultFor(data: Data?, response: URLResponse?, error: Error?,
+                           fileID: String = #fileID, filePath: String = #filePath,
+                           line: Int = #line, column: Int = #column) async -> HTTPClientResult {
         URLProtocolStub.stub(data: data, response: response, error: error)
         let sut = makeSUT(fileID: fileID, filePath: filePath, line: line, column: column)
         
-        var capturedError: Error?
+        var capturedResult: HTTPClientResult!
         await withCheckedContinuation { continuation in
             sut.get(from: anyURL) { result in
-                switch result {
-                case .failure(let error): capturedError = error
-                default: Issue.record("expected failure, but got \(result).",
-                                      sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
-                }
+                capturedResult = result
                 continuation.resume()
             }
         }
-        return capturedError
+        return capturedResult
     }
 }
 
