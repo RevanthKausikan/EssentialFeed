@@ -16,10 +16,14 @@ final class URLSessionHTTPClient {
         self.session = session
     }
     
+    struct UnexpectedValuesRepresentation: Error { }
+    
     func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void) {
         session.dataTask(with: url) { _, _, error in
             if let error {
                 completion(.failure(error))
+            } else {
+                completion(.failure(UnexpectedValuesRepresentation()))
             }
         }.resume()
     }
@@ -63,6 +67,22 @@ final class URLSessionHTTPClientTests: EFTesting {
                     #expect(receivedError.code == error.code)
                 default:
                     Issue.record("expected to fail with \(error).")
+                }
+                continuation.resume()
+            }
+        }
+    }
+    
+    @Test("Get from URL - fails for all nil values")
+    func getFromURL_failsForAllNilValues() async {
+        URLProtocolStub.stub(data: nil, response: nil, error: nil)
+        
+        await withCheckedContinuation { continuation in
+            makeSUT().get(from: anyURL) { result in
+                switch result {
+                case .failure: break
+                default:
+                    Issue.record("expected failure, but got \(result).")
                 }
                 continuation.resume()
             }
