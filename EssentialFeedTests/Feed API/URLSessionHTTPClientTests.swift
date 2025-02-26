@@ -26,11 +26,18 @@ final class URLSessionHTTPClient {
 }
 
 @Suite(.serialized)
-struct URLSessionHTTPClientTests {
+final class URLSessionHTTPClientTests {
+    
+    init() {
+        URLProtocolStub.startInterceptingRequests()
+    }
+    
+    deinit {
+        URLProtocolStub.stopInterceptingRequests()
+    }
+    
     @Test("Get from URL - performs GET request with URL")
     func getFromURL_performsGETRequestWithURL() async {
-        URLProtocolStub.startInterceptingRequests()
-        
         await withCheckedContinuation { continuation in
             let url = URL(string: "any-url.com")!
             URLProtocolStub.observeRequests { request in
@@ -40,15 +47,10 @@ struct URLSessionHTTPClientTests {
             URLSessionHTTPClient().get(from: url) { _ in }
             continuation.resume()
         }
-        
-        
-        URLProtocolStub.stopInterceptingRequests()
     }
     
     @Test("Get from URL - fails with request error")
     func getFromURL_failsWithRequestError() async {
-        URLProtocolStub.startInterceptingRequests()
-        
         let url = URL(string: "any-url.com")!
         let error = NSError(domain: "any error", code: 1)
         URLProtocolStub.stub(data: nil, response: nil, error: error)
@@ -66,8 +68,6 @@ struct URLSessionHTTPClientTests {
                 continuation.resume()
             }
         }
-        
-        URLProtocolStub.stopInterceptingRequests()
     }
 }
 
