@@ -56,7 +56,7 @@ final class URLSessionHTTPClientTests: EFTesting {
     
     @Test("Get from URL - fails with request error")
     func getFromURL_failsWithRequestError() async throws {
-        let requestError = NSError(domain: "any error", code: 1)
+        let requestError = anyError
         let capturedError = await resultErrorFor(data: nil, response: nil, error: requestError)
         
         let receivedError = try #require(capturedError as? NSError)
@@ -64,14 +64,33 @@ final class URLSessionHTTPClientTests: EFTesting {
         #expect(receivedError.code == requestError.code)
     }
     
-    @Test("Get from URL - fails for all nil values")
-    func getFromURL_failsForAllNilValues() async {
-        let receivedError = await resultErrorFor(data: nil, response: nil, error: nil)
-        #expect(receivedError != nil)
+    @Test(
+        "Get from URL - fails for invalidConditions",
+        arguments: [
+            (nil, nil, nil),
+            (nil, nonHTTPURLResponse, nil),
+            (nil, anyHTTPURLResponse, nil),
+            (anyData, nil, nil),
+            (anyData, nil, anyError),
+            (nil, nonHTTPURLResponse, anyError),
+            (nil, anyHTTPURLResponse, anyError),
+            (anyData, nonHTTPURLResponse, anyError),
+            (anyData, anyHTTPURLResponse, anyError),
+            (anyData, nonHTTPURLResponse, nil),
+        ]
+    )
+    func getFromURL_failsForAllInvalidConditions(data: Data?, response: URLResponse?, error: Error?) async {
+        #expect(await resultErrorFor(data: data, response: response, error: error) != nil)
     }
 }
 
 // MARK: - Helpers
+
+private var anyURL: URL { URL(string: "any-url.com")! }
+private var anyData: Data { Data("any-data".utf8) }
+private var anyError: NSError { NSError(domain: "any error", code: 1) }
+private var nonHTTPURLResponse: URLResponse { URLResponse(url: anyURL, mimeType: nil, expectedContentLength: 0, textEncodingName: nil) }
+private var anyHTTPURLResponse: HTTPURLResponse? { HTTPURLResponse(url: anyURL, statusCode: 200, httpVersion: nil, headerFields: nil) }
 
 extension URLSessionHTTPClientTests {
     private func makeSUT(fileID: String = #fileID,
@@ -83,11 +102,7 @@ extension URLSessionHTTPClientTests {
         return sut
     }
     
-    private var anyURL: URL {
-        URL(string: "any-url.com")!
-    }
-    
-    private func resultErrorFor(data: Data?, response: HTTPURLResponse?, error: Error?,
+    private func resultErrorFor(data: Data?, response: URLResponse?, error: Error?,
                                 fileID: String = #fileID, filePath: String = #filePath,
                                 line: Int = #line, column: Int = #column) async -> Error? {
         URLProtocolStub.stub(data: data, response: response, error: error)
