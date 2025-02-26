@@ -41,7 +41,7 @@ final class RemoteFeedLoaderTests: EFTesting {
     func load_returnsError_onClientError() async {
         let (sut, client) = makeSUT()
         
-        await expect(sut, toCompleteWithResult: .failure(.connectivityError), when: {
+        await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.connectivityError), when: {
             let clientError = NSError(domain: "Test", code: 0)
             client.complete(with: clientError)
         })
@@ -51,7 +51,7 @@ final class RemoteFeedLoaderTests: EFTesting {
     func load_returnsError_onResponseOtherThan200(statusCode: Int) async {
         let (sut, client) = makeSUT()
         
-        await expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
+        await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.invalidData), when: {
             let emptyItemsData = makeItemsJSON(using: [])
             client.complete(withStatusCode: statusCode, data: emptyItemsData)
         })
@@ -61,7 +61,7 @@ final class RemoteFeedLoaderTests: EFTesting {
     func load_returnsError_onResponse200_andInvalidJSON() async {
         let (sut, client) = makeSUT()
         
-        await expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
+        await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.invalidData), when: {
             let invalidJSON = Data("invalid_json".utf8)
             client.complete(withStatusCode: 200, data: invalidJSON)
         })
@@ -140,7 +140,7 @@ extension RemoteFeedLoaderTests {
                 switch (receivedResult, expectedResult) {
                 case let (.success(receivedItems), .success(expectedItems)):
                     #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
-                case let (.failure(receivedError), .failure(expectedError)):
+                case let (.failure(receivedError as RemoteFeedLoader.Error), .failure(expectedError as RemoteFeedLoader.Error)):
                     #expect(receivedError == expectedError, sourceLocation: sourceLocation)
                 default:
                     Issue.record("Expected \(expectedResult) but received \(receivedResult) instead.", sourceLocation: sourceLocation)
