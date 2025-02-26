@@ -8,7 +8,21 @@
 import Testing
 import EssentialFeed
 
-struct RemoteFeedLoaderTests {
+class EFTesting {
+    var instances = [Any]()
+    
+    func trackForMemoryLeak(_ instance: Any) {
+        instances.append(instance)
+    }
+    
+    deinit {
+        for instance in instances {
+            #expect(instance == nil, "Instance should have been deallocated. Potential memory leak.")
+        }
+    }
+}
+
+final class RemoteFeedLoaderTests: EFTesting {
     @Test("init does not request data from URL")
     func init_doesNotRequestDataFromURL() {
         let (_, client) = makeSUT()
@@ -101,20 +115,35 @@ extension RemoteFeedLoaderTests {
     private func makeSUT(url: URL = URL(string: "www.any-url.com")!) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
         let sut = RemoteFeedLoader(url: url,client: client)
+        
+        trackForMemoryLeak(client)
+        trackForMemoryLeak(sut)
+        
         return (sut, client)
     }
     
     private func expect(_ sut: RemoteFeedLoader,
                         toCompleteWithResult result: RemoteFeedLoader.Result,
                         when action: () -> Void,
-                        sourceLocation: SourceLocation = .__here()) {
+                        fileID: String = #fileID,
+                        filePath: String = #filePath,
+                        line: Int = #line,
+                        column: Int = #column) {
         var capturedResults = [RemoteFeedLoader.Result]()
         sut.load { capturedResults.append($0) }
         
         action()
         
-        #expect(capturedResults == [result], sourceLocation: sourceLocation)
+        #expect(capturedResults == [result],
+                sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
     }
+    
+//    private func trackForMemoryLeaks(_ instance: AnyObject) {
+    //            addTeardownBlock { [weak instance] in
+//                #expect(instance == nil, "Instance should have been deallocated. Potential memory leak.")
+//            }
+//        }
+//    }
     
     private func getFeedItem(id: UUID, description: String? = nil,
                              location: String? = nil, imageURL: URL) -> (model: FeedItem, json: [String: Any]) {
