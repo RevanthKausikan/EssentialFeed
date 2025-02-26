@@ -9,15 +9,28 @@ import Testing
 import EssentialFeed
 
 class EFTesting {
-    var instances = [Any]()
+    typealias MemoryLeakCheckable = AnyObject & Sendable
     
-    func trackForMemoryLeak(_ instance: Any) {
-        instances.append(instance)
+    private var checks = [MemoryLeakCheck]()
+    
+    func trackForMemoryLeak<T: MemoryLeakCheckable>(_ instanceFactory: @autoclosure () -> T,
+                                                    sourceLocation: SourceLocation = .__here()) {
+        checks.append(.init(instanceFactory(), sourceLocation: sourceLocation))
+    }
+    
+    private struct MemoryLeakCheck {
+        let sourceLocation: SourceLocation
+        private weak var weakReference: MemoryLeakCheckable?
+        var isLeaking: Bool { weakReference != nil }
+        init(_ weakReference: MemoryLeakCheckable, sourceLocation: SourceLocation) {
+            self.weakReference = weakReference
+            self.sourceLocation = sourceLocation
+        }
     }
     
     deinit {
-        for instance in instances {
-            #expect(instance == nil, "Instance should have been deallocated. Potential memory leak.")
+        for check in checks {
+            #expect(check.isLeaking == false, "Potential Memory Leak detected", sourceLocation: check.sourceLocation)
         }
     }
 }
@@ -112,12 +125,15 @@ final class RemoteFeedLoaderTests: EFTesting {
 
 // MARK: - Helpers
 extension RemoteFeedLoaderTests {
-    private func makeSUT(url: URL = URL(string: "www.any-url.com")!) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
+    private func makeSUT(url: URL = URL(string: "www.any-url.com")!,
+                         fileID: String = #fileID,
+                         filePath: String = #filePath,
+                         line: Int = #line,
+                         column: Int = #column) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
         let client = HTTPClientSpy()
         let sut = RemoteFeedLoader(url: url,client: client)
         
-        trackForMemoryLeak(client)
-        trackForMemoryLeak(sut)
+        trackForMemoryLeak(client, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         
         return (sut, client)
     }
@@ -137,13 +153,6 @@ extension RemoteFeedLoaderTests {
         #expect(capturedResults == [result],
                 sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
     }
-    
-//    private func trackForMemoryLeaks(_ instance: AnyObject) {
-    //            addTeardownBlock { [weak instance] in
-//                #expect(instance == nil, "Instance should have been deallocated. Potential memory leak.")
-//            }
-//        }
-//    }
     
     private func getFeedItem(id: UUID, description: String? = nil,
                              location: String? = nil, imageURL: URL) -> (model: FeedItem, json: [String: Any]) {
