@@ -40,7 +40,7 @@ final class URLSessionHTTPClientTests: EFTesting {
     @Test("Get from URL - performs GET request with URL")
     func getFromURL_performsGETRequestWithURL() async {
         await withCheckedContinuation { continuation in
-            let url = URL(string: "any-url.com")!
+            let url = anyURL
             URLProtocolStub.observeRequests { request in
                 #expect(request.httpMethod == "GET")
                 #expect(request.url == url)
@@ -52,12 +52,11 @@ final class URLSessionHTTPClientTests: EFTesting {
     
     @Test("Get from URL - fails with request error")
     func getFromURL_failsWithRequestError() async {
-        let url = URL(string: "any-url.com")!
         let error = NSError(domain: "any error", code: 1)
         URLProtocolStub.stub(data: nil, response: nil, error: error)
         
         await withCheckedContinuation { continuation in
-            makeSUT().get(from: url) { result in
+            makeSUT().get(from: anyURL) { result in
                 switch result {
                 case .failure(let receivedError as NSError):
                     #expect(receivedError.domain == error.domain)
@@ -78,6 +77,10 @@ extension URLSessionHTTPClientTests {
         let sut = URLSessionHTTPClient()
         trackForMemoryLeak(sut)
         return sut
+    }
+    
+    private var anyURL: URL {
+        URL(string: "any-url.com")!
     }
 }
 
