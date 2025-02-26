@@ -13,7 +13,7 @@ class EFTesting {
     private var checks = [MemoryLeakCheck]()
     
     func trackForMemoryLeak<T: MemoryLeakCheckable>(_ instanceFactory: @autoclosure () -> T,
-                                                    sourceLocation: SourceLocation = .__here()) {
+                                                    sourceLocation: SourceLocation) {
         checks.append(.init(instanceFactory(), sourceLocation: sourceLocation))
     }
     

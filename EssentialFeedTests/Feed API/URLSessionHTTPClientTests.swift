@@ -55,52 +55,56 @@ final class URLSessionHTTPClientTests: EFTesting {
     }
     
     @Test("Get from URL - fails with request error")
-    func getFromURL_failsWithRequestError() async {
-        let error = NSError(domain: "any error", code: 1)
-        URLProtocolStub.stub(data: nil, response: nil, error: error)
+    func getFromURL_failsWithRequestError() async throws {
+        let requestError = NSError(domain: "any error", code: 1)
+        let capturedError = await resultErrorFor(data: nil, response: nil, error: requestError)
         
-        await withCheckedContinuation { continuation in
-            makeSUT().get(from: anyURL) { result in
-                switch result {
-                case .failure(let receivedError as NSError):
-                    #expect(receivedError.domain == error.domain)
-                    #expect(receivedError.code == error.code)
-                default:
-                    Issue.record("expected to fail with \(error).")
-                }
-                continuation.resume()
-            }
-        }
+        let receivedError = try #require(capturedError as? NSError)
+        #expect(receivedError.domain == requestError.domain)
+        #expect(receivedError.code == requestError.code)
     }
     
     @Test("Get from URL - fails for all nil values")
     func getFromURL_failsForAllNilValues() async {
-        URLProtocolStub.stub(data: nil, response: nil, error: nil)
-        
-        await withCheckedContinuation { continuation in
-            makeSUT().get(from: anyURL) { result in
-                switch result {
-                case .failure: break
-                default:
-                    Issue.record("expected failure, but got \(result).")
-                }
-                continuation.resume()
-            }
-        }
+        let receivedError = await resultErrorFor(data: nil, response: nil, error: nil)
+        #expect(receivedError != nil)
     }
 }
 
 // MARK: - Helpers
 
 extension URLSessionHTTPClientTests {
-    private func makeSUT() -> URLSessionHTTPClient {
+    private func makeSUT(fileID: String = #fileID,
+                         filePath: String = #filePath,
+                         line: Int = #line,
+                         column: Int = #column) -> URLSessionHTTPClient {
         let sut = URLSessionHTTPClient()
-        trackForMemoryLeak(sut)
+        trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
     }
     
     private var anyURL: URL {
         URL(string: "any-url.com")!
+    }
+    
+    private func resultErrorFor(data: Data?, response: HTTPURLResponse?, error: Error?,
+                                fileID: String = #fileID, filePath: String = #filePath,
+                                line: Int = #line, column: Int = #column) async -> Error? {
+        URLProtocolStub.stub(data: data, response: response, error: error)
+        let sut = makeSUT(fileID: fileID, filePath: filePath, line: line, column: column)
+        
+        var capturedError: Error?
+        await withCheckedContinuation { continuation in
+            sut.get(from: anyURL) { result in
+                switch result {
+                case .failure(let error): capturedError = error
+                default: Issue.record("expected failure, but got \(result).",
+                                      sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                }
+                continuation.resume()
+            }
+        }
+        return capturedError
     }
 }
 
