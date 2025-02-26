@@ -26,7 +26,7 @@ final class URLSessionHTTPClient {
 }
 
 struct URLSessionHTTPClientTests {
-    @Test("Get from URL - fails with request error", .disabled())
+    @Test("Get from URL - fails with request error")
     func getFromURL_failsWithRequestError() async {
         URLProtocolStub.startInterceptingRequests()
         
@@ -39,7 +39,8 @@ struct URLSessionHTTPClientTests {
             sut.get(from: url) { result in
                 switch result {
                 case .failure(let receivedError as NSError):
-                    #expect(receivedError == error)
+                    #expect(receivedError.domain == error.domain)
+                    #expect(receivedError.code == error.code)
                 default:
                     Issue.record("expected to fail with \(error).")
                 }
