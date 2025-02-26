@@ -44,7 +44,7 @@ final class URLSessionHTTPClientTests {
                 #expect(request.httpMethod == "GET")
                 #expect(request.url == url)
             }
-            URLSessionHTTPClient().get(from: url) { _ in }
+            makeSUT().get(from: url) { _ in }
             continuation.resume()
         }
     }
@@ -54,10 +54,9 @@ final class URLSessionHTTPClientTests {
         let url = URL(string: "any-url.com")!
         let error = NSError(domain: "any error", code: 1)
         URLProtocolStub.stub(data: nil, response: nil, error: error)
-        let sut = URLSessionHTTPClient()
         
         await withCheckedContinuation { continuation in
-            sut.get(from: url) { result in
+            makeSUT().get(from: url) { result in
                 switch result {
                 case .failure(let receivedError as NSError):
                     #expect(receivedError.domain == error.domain)
@@ -72,6 +71,13 @@ final class URLSessionHTTPClientTests {
 }
 
 // MARK: - Helpers
+
+extension URLSessionHTTPClientTests {
+    private func makeSUT() -> URLSessionHTTPClient {
+        URLSessionHTTPClient()
+    }
+}
+
 fileprivate final class URLProtocolStub: URLProtocol {
     private static var stub: Stub?
     private static var requestObserver: ((URLRequest) -> Void)?
