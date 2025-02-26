@@ -22,7 +22,7 @@ final class URLSessionHTTPClient {
         session.dataTask(with: url) { data, response, error in
             if let error {
                 completion(.failure(error))
-            } else if let data, data.count > 0, let response = response as? HTTPURLResponse {
+            } else if let data, let response = response as? HTTPURLResponse {
                 completion(.success(data, response))
             } else {
                 completion(.failure(UnexpectedValuesRepresentation()))
@@ -71,7 +71,6 @@ final class URLSessionHTTPClientTests: EFTesting {
         arguments: [
             (nil, nil, nil),
             (nil, nonHTTPURLResponse, nil),
-            (nil, anyHTTPURLResponse, nil),
             (anyData, nil, nil),
             (anyData, nil, anyError),
             (nil, nonHTTPURLResponse, anyError),
@@ -87,6 +86,25 @@ final class URLSessionHTTPClientTests: EFTesting {
     
     @Test("Get from URL - succeeds with HTTPURLResponse and Data")
     func getFromURL_succeedsWithHTTPURLResponseAndData() async {
+        let response = anyHTTPURLResponse
+        URLProtocolStub.stub(data: nil, response: response, error: nil)
+        
+        await withCheckedContinuation { continuation in
+            makeSUT().get(from: anyURL) { result in
+                switch result {
+                case .success(let receivedData, let receivedResponse):
+                    #expect(receivedData == emptyData)
+                    #expect(receivedResponse.statusCode == response?.statusCode)
+                    #expect(receivedResponse.url == response?.url)
+                default: Issue.record("expected failure, but got \(result).")
+                }
+                continuation.resume()
+            }
+        }
+    }
+    
+    @Test("Get from URL - succeeds with Empty Data on HTTPURLResponse with nil Data")
+    func getFromURL_succeedsWithEmptyDataOnHTTPURLResponseWithNilData() async {
         let data = anyData
         let response = anyHTTPURLResponse
         URLProtocolStub.stub(data: data, response: response, error: nil)
@@ -110,6 +128,7 @@ final class URLSessionHTTPClientTests: EFTesting {
 
 private var anyURL: URL { URL(string: "any-url.com")! }
 private var anyData: Data { Data("any-data".utf8) }
+private var emptyData: Data { Data() }
 private var anyError: NSError { NSError(domain: "any error", code: 1) }
 private var nonHTTPURLResponse: URLResponse { URLResponse(url: anyURL, mimeType: nil, expectedContentLength: 0, textEncodingName: nil) }
 private var anyHTTPURLResponse: HTTPURLResponse? { HTTPURLResponse(url: anyURL, statusCode: 200, httpVersion: nil, headerFields: nil) }
