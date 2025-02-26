@@ -16,9 +16,13 @@ final class URLSessionHTTPClient {
         self.session = session
     }
     
-    func get(from url: URL) {
+    func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void) {
         let urlRequest = URLRequest(url: url)
-        session.dataTask(with: urlRequest, completionHandler: { _, _, _ in }).resume()
+        session.dataTask(with: urlRequest) { _, _, error in
+            if let error {
+                completion(.failure(error))
+            }
+        }.resume()
     }
 }
 
@@ -31,20 +35,29 @@ struct URLSessionHTTPClientTests {
         session.stub(url, task: task)
         let sut = URLSessionHTTPClient(session: session)
         
-        sut.get(from: url)
+        sut.get(from: url) { _ in }
         
         #expect(task.resumeCallCount == 1)
     }
     
     @Test("Get from URL - fails with request error")
-    func getFromURL_failsWithRequestError() {
+    func getFromURL_failsWithRequestError() async {
         let url = URL(string: "any-url.com")!
         let error = NSError(domain: "any error", code: 1)
         let session = URLSessionSpy()
         session.stub(url, error: error)
         let sut = URLSessionHTTPClient(session: session)
         
-        sut.get(from: url)
+        await withCheckedContinuation { continuation in
+            sut.get(from: url) { result in
+                switch result {
+                case .failure(let receivedError as NSError):
+                    #expect(receivedError == error)
+                default: Issue.record("expected to fail with \(error).")
+                }
+                continuation.resume()
+            }
+        }
     }
 }
 
