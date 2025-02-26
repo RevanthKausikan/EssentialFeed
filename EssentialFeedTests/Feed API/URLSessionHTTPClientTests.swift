@@ -26,9 +26,10 @@ final class URLSessionHTTPClient {
 }
 
 @Suite(.serialized)
-final class URLSessionHTTPClientTests {
+final class URLSessionHTTPClientTests: EFTesting {
     
-    init() {
+    override init() {
+        super.init()
         URLProtocolStub.startInterceptingRequests()
     }
     
@@ -74,7 +75,9 @@ final class URLSessionHTTPClientTests {
 
 extension URLSessionHTTPClientTests {
     private func makeSUT() -> URLSessionHTTPClient {
-        URLSessionHTTPClient()
+        let sut = URLSessionHTTPClient()
+        trackForMemoryLeak(sut)
+        return sut
     }
 }
 
