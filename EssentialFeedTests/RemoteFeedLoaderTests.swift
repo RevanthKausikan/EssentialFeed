@@ -38,47 +38,47 @@ final class RemoteFeedLoaderTests: EFTesting {
     }
     
     @Test("load returns Error on client error")
-    func load_returnsError_onClientError() {
+    func load_returnsError_onClientError() async {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: .failure(.connectivityError), when: {
+        await expect(sut, toCompleteWithResult: .failure(.connectivityError), when: {
             let clientError = NSError(domain: "Test", code: 0)
             client.complete(with: clientError)
         })
     }
     
     @Test("load returns Error on response other than 200", arguments: [199, 201, 300, 400, 500])
-    func load_returnsError_onResponseOtherThan200(statusCode: Int) {
+    func load_returnsError_onResponseOtherThan200(statusCode: Int) async {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
+        await expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
             let emptyItemsData = makeItemsJSON(using: [])
             client.complete(withStatusCode: statusCode, data: emptyItemsData)
         })
     }
     
     @Test("load returns Error on Invalid JSON")
-    func load_returnsError_onResponse200_andInvalidJSON() {
+    func load_returnsError_onResponse200_andInvalidJSON() async {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
+        await expect(sut, toCompleteWithResult: .failure(.invalidData), when: {
             let invalidJSON = Data("invalid_json".utf8)
             client.complete(withStatusCode: 200, data: invalidJSON)
         })
     }
     
     @Test("load returns empty list on empty JSON")
-    func load_returnsEmptyList_onEmptyJSON() {
+    func load_returnsEmptyList_onEmptyJSON() async {
         let (sut, client) = makeSUT()
         
-        expect(sut, toCompleteWithResult: .success([]), when: {
+        await expect(sut, toCompleteWithResult: .success([]), when: {
             let emptyJSON = makeItemsJSON(using: [])
             client.complete(withStatusCode: 200, data: emptyJSON)
         })
     }
     
     @Test("load returns actual list based on given JSON")
-    func load_returnsList_basedOnJSON() {
+    func load_returnsList_basedOnJSON() async {
         let (sut, client) = makeSUT()
         
         let (item1, item1JSON) = getFeedItem(id: UUID(),
@@ -89,7 +89,7 @@ final class RemoteFeedLoaderTests: EFTesting {
                                              location: "some location",
                                              imageURL: URL(string: "some-other-url.com")!)
         
-        expect(sut, toCompleteWithResult: .success([item1, item2]), when: {
+        await expect(sut, toCompleteWithResult: .success([item1, item2]), when: {
             let itemsData = makeItemsJSON(using: [item1JSON, item2JSON])
             client.complete(withStatusCode: 200, data: itemsData)
         })
@@ -127,19 +127,29 @@ extension RemoteFeedLoaderTests {
     }
     
     private func expect(_ sut: RemoteFeedLoader,
-                        toCompleteWithResult result: RemoteFeedLoader.Result,
+                        toCompleteWithResult expectedResult: RemoteFeedLoader.Result,
                         when action: () -> Void,
                         fileID: String = #fileID,
                         filePath: String = #filePath,
                         line: Int = #line,
-                        column: Int = #column) {
-        var capturedResults = [RemoteFeedLoader.Result]()
-        sut.load { capturedResults.append($0) }
+                        column: Int = #column) async {
+        let sourceLocation = SourceLocation(fileID: fileID, filePath: filePath, line: line, column: column)
         
-        action()
-        
-        #expect(capturedResults == [result],
-                sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        await withCheckedContinuation { continuation in
+            sut.load { receivedResult in
+                switch (receivedResult, expectedResult) {
+                case let (.success(receivedItems), .success(expectedItems)):
+                    #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
+                case let (.failure(receivedError), .failure(expectedError)):
+                    #expect(receivedError == expectedError, sourceLocation: sourceLocation)
+                default:
+                    Issue.record("Expected \(expectedResult) but received \(receivedResult) instead.", sourceLocation: sourceLocation)
+                }
+                continuation.resume()
+            }
+            
+            action()
+        }
     }
     
     private func getFeedItem(id: UUID, description: String? = nil,
