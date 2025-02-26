@@ -9,7 +9,7 @@ import Testing
 import Foundation
 import EssentialFeed
 
-final class URLSessionHTTPClient {
+final class URLSessionHTTPClient: HTTPClient {
     private let session: URLSession
     
     init(session: URLSession = .shared) {
@@ -119,7 +119,7 @@ extension URLSessionHTTPClientTests {
     private func makeSUT(fileID: String = #fileID,
                          filePath: String = #filePath,
                          line: Int = #line,
-                         column: Int = #column) -> URLSessionHTTPClient {
+                         column: Int = #column) -> HTTPClient {
         let sut = URLSessionHTTPClient()
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
