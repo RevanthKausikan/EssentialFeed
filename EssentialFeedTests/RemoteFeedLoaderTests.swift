@@ -94,6 +94,21 @@ final class RemoteFeedLoaderTests: EFTesting {
             client.complete(withStatusCode: 200, data: itemsData)
         })
     }
+    
+    @Test("Deallocating SUT will not produce result")
+    func deallocatingSUT_doesNotCallCompletion() {
+        let url = URL(string: "any-url.com")!
+        let client = HTTPClientSpy()
+        var sut: RemoteFeedLoader? = RemoteFeedLoader(url: url, client: client)
+        
+        var capturedResults = [RemoteFeedLoader.Result]()
+        sut?.load { capturedResults.append($0) }
+        
+        sut = nil
+        client.complete(withStatusCode: 200, data: makeItemsJSON(using: []))
+        
+        #expect(capturedResults.isEmpty)
+    }
 }
 
 // MARK: - Helpers
