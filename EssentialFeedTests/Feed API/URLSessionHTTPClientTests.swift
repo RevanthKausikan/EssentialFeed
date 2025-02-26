@@ -87,40 +87,22 @@ final class URLSessionHTTPClientTests: EFTesting {
     @Test("Get from URL - succeeds with HTTPURLResponse and Data")
     func getFromURL_succeedsWithHTTPURLResponseAndData() async {
         let response = anyHTTPURLResponse
-        URLProtocolStub.stub(data: nil, response: response, error: nil)
+        let capturedValues = await resultValuesFor(data: nil, response: response, error: nil)
         
-        await withCheckedContinuation { continuation in
-            makeSUT().get(from: anyURL) { result in
-                switch result {
-                case .success(let receivedData, let receivedResponse):
-                    #expect(receivedData == emptyData)
-                    #expect(receivedResponse.statusCode == response?.statusCode)
-                    #expect(receivedResponse.url == response?.url)
-                default: Issue.record("expected failure, but got \(result).")
-                }
-                continuation.resume()
-            }
-        }
+        #expect(capturedValues?.data == emptyData)
+        #expect(capturedValues?.response.statusCode == response?.statusCode)
+        #expect(capturedValues?.response.url == response?.url)
     }
     
     @Test("Get from URL - succeeds with Empty Data on HTTPURLResponse with nil Data")
     func getFromURL_succeedsWithEmptyDataOnHTTPURLResponseWithNilData() async {
         let data = anyData
         let response = anyHTTPURLResponse
-        URLProtocolStub.stub(data: data, response: response, error: nil)
+        let capturedValues = await resultValuesFor(data: anyData, response: response, error: nil)
         
-        await withCheckedContinuation { continuation in
-            makeSUT().get(from: anyURL) { result in
-                switch result {
-                case .success(let receivedData, let receivedResponse):
-                    #expect(receivedData == data)
-                    #expect(receivedResponse.statusCode == response?.statusCode)
-                    #expect(receivedResponse.url == response?.url)
-                default: Issue.record("expected failure, but got \(result).")
-                }
-                continuation.resume()
-            }
-        }
+        #expect(capturedValues?.data == data)
+        #expect(capturedValues?.response.statusCode == response?.statusCode)
+        #expect(capturedValues?.response.url == response?.url)
     }
 }
 
@@ -141,6 +123,26 @@ extension URLSessionHTTPClientTests {
         let sut = URLSessionHTTPClient()
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
+    }
+    
+    private func resultValuesFor(data: Data?, response: URLResponse?, error: Error?,
+                                 fileID: String = #fileID, filePath: String = #filePath,
+                                 line: Int = #line, column: Int = #column) async -> (data: Data, response: HTTPURLResponse)? {
+        URLProtocolStub.stub(data: data, response: response, error: error)
+        let sut = makeSUT(fileID: fileID, filePath: filePath, line: line, column: column)
+        
+        var capturedValues: (data: Data, response: HTTPURLResponse)?
+        await withCheckedContinuation { continuation in
+            sut.get(from: anyURL) { result in
+                switch result {
+                case .success(let data, let response): capturedValues = (data, response)
+                default: Issue.record("expected success, but got \(result).",
+                                      sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                }
+                continuation.resume()
+            }
+        }
+        return capturedValues
     }
     
     private func resultErrorFor(data: Data?, response: URLResponse?, error: Error?,
