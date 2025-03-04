@@ -163,7 +163,7 @@ extension RemoteFeedLoaderTests {
             "id": id.uuidString,
             "description": description,
             "location": location,
-            "url": imageURL.absoluteString
+            "image": imageURL.absoluteString
         ].compactMapValues { $0 }
         
         return (item, itemJSON)
