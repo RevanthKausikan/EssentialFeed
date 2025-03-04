@@ -5,6 +5,8 @@
 //  Created by Revanth Kausikan on 25/02/25.
 //
 
+import Foundation
+
 struct FeedItemsMapper {
     private struct Root: Decodable {
         let items: [RemoteFeedItem]

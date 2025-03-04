@@ -5,6 +5,8 @@
 //  Created by Revanth Kausikan on 26/02/25.
 //
 
+import Foundation
+
 public final class URLSessionHTTPClient: HTTPClient {
     private let session: URLSession
     

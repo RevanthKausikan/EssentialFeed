@@ -5,6 +5,8 @@
 //  Created by Revanth Kausikan on 24/02/25.
 //
 
+import Foundation
+
 public final class RemoteFeedLoader: FeedLoader {
     let url: URL
     let client: HTTPClient
