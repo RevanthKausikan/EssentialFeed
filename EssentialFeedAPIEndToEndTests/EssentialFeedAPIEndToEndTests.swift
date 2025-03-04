@@ -8,7 +8,7 @@
 import Testing
 import EssentialFeed
 
-struct EssentialFeedAPIEndToEndTests {
+final class EssentialFeedAPIEndToEndTests: EFTesting {
     
     @Test("GET call matches expected data")
     func endToEndTestServerGETFeedResult_matchesFixedTestAccountData() async {
@@ -32,11 +32,15 @@ struct EssentialFeedAPIEndToEndTests {
 
 // MARK: - Helpers
 extension EssentialFeedAPIEndToEndTests {
-    private func getFeedResult() async -> LoadFeedResult {
+    private func getFeedResult(fileID: String = #fileID,
+                               filePath: String = #filePath,
+                               line: Int = #line,
+                               column: Int = #column) async -> LoadFeedResult {
         let testServerURL = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
         let client = URLSessionHTTPClient()
         let loader = RemoteFeedLoader(url: testServerURL, client: client)
-        
+        trackForMemoryLeak(client, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return await withCheckedContinuation { continuation in
             loader.load { continuation.resume(returning: $0) }
         }

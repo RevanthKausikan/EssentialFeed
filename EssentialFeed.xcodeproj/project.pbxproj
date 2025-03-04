@@ -43,6 +43,13 @@
 			);
 			target = E4A93E732D6CA58E00EC8B0C /* EssentialFeed */;
 		};
+		E4E502672D77449400D2A73B /* Exceptions for "EssentialFeedTests" folder in "EssentialFeedAPIEndToEndTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				EFTesting.swift,
+			);
+			target = E4E5025B2D773EF200D2A73B /* EssentialFeedAPIEndToEndTests */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -56,6 +63,9 @@
 		};
 		E4A93E802D6CA58E00EC8B0C /* EssentialFeedTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E4E502672D77449400D2A73B /* Exceptions for "EssentialFeedTests" folder in "EssentialFeedAPIEndToEndTests" target */,
+			);
 			path = EssentialFeedTests;
 			sourceTree = "<group>";
 		};
