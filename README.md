@@ -1,5 +1,7 @@
 # Essential Feed App – Image Feed Feature
 
+[![CI](https://github.com/RevanthKausikan/EssentialFeed/actions/workflows/CI.yml/badge.svg)](https://github.com/RevanthKausikan/EssentialFeed/actions/workflows/CI.yml)
+
 ## BDD Specs
 
 ### Story: Customer requests to see their image feed
