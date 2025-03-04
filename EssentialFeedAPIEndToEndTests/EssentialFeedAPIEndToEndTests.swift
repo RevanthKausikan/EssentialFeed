@@ -16,14 +16,8 @@ struct EssentialFeedAPIEndToEndTests {
         let client = URLSessionHTTPClient()
         let loader = RemoteFeedLoader(url: testServerURL, client: client)
         
-        
-        
-        var receivedResult: LoadFeedResult?
-        await withCheckedContinuation { continuation in
-            loader.load { result in
-                receivedResult = result
-                continuation.resume()
-            }
+        let receivedResult: LoadFeedResult = await withCheckedContinuation { continuation in
+            loader.load { continuation.resume(returning: $0) }
         }
         
         switch receivedResult {
