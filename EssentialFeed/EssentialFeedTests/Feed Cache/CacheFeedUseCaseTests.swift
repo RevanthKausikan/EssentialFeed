@@ -18,8 +18,9 @@ final class LocalFeedLoader {
         self.currentDate = currentDate
     }
     
-    func save(_ items: [FeedItem]) {
+    func save(_ items: [FeedItem], completion: @escaping (NSError?) -> Void) {
         store.deleteCachedFeed { [unowned self] error in
+            completion(error)
             if error == nil {
                 store.insert(items, timestamp: currentDate())
             }
@@ -71,7 +72,7 @@ final class CacheFeedUseCaseTests: EFTesting {
         let items = [uniqueItem, uniqueItem]
         let (sut, store) = makeSUT()
         
-        sut.save(items)
+        sut.save(items) { _ in }
         
         #expect(store.receivedMessages == [.deleteCachedFeed])
     }
@@ -82,7 +83,7 @@ final class CacheFeedUseCaseTests: EFTesting {
         let (sut, store) = makeSUT()
         let deletionError = anyError
         
-        sut.save(items)
+        sut.save(items) { _ in }
         store.completeDeletion(with: deletionError)
         
         #expect(store.receivedMessages == [.deleteCachedFeed])
@@ -94,10 +95,26 @@ final class CacheFeedUseCaseTests: EFTesting {
         let items = [uniqueItem, uniqueItem]
         let (sut, store) = makeSUT(currentDate: { timestamp })
         
-        sut.save(items)
+        sut.save(items) { _ in }
         store.completeDeletionSuccessfully()
         
         #expect(store.receivedMessages == [.deleteCachedFeed, .insert(items, timestamp)])
+    }
+    
+    @Test("Save fails on deletion error")
+    func save_fails_onDeletionError() async {
+        let items = [uniqueItem, uniqueItem]
+        let (sut, store) = makeSUT()
+        let deletionError = anyError
+        
+        let capturedError = await withCheckedContinuation { continuation in
+            sut.save(items) { error in
+                continuation.resume(returning: error)
+            }
+            store.completeDeletion(with: deletionError)
+        }
+        
+        #expect(store.receivedMessages == [.deleteCachedFeed])
     }
 }
 
