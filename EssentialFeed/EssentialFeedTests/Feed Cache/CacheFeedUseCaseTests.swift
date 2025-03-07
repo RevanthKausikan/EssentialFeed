@@ -88,7 +88,7 @@ final class CacheFeedUseCaseTests: EFTesting {
         let store = FeedStoreSpy()
         var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
         
-        let capturedError: Error? = await withCheckedContinuation { continuation in
+        let capturedError: LocalFeedLoader.SaveResult = await withCheckedContinuation { continuation in
             sut?.save([uniqueItem]) { error in
                 continuation.resume(returning: error)
             }
@@ -105,7 +105,7 @@ final class CacheFeedUseCaseTests: EFTesting {
         let store = FeedStoreSpy()
         var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
         
-        let capturedError: Error? = await withCheckedContinuation { continuation in
+        let capturedError: LocalFeedLoader.SaveResult? = await withCheckedContinuation { continuation in
             sut?.save([uniqueItem]) { error in
                 continuation.resume(returning: error)
             }
