@@ -11,9 +11,14 @@ import EssentialFeed
 
 final class FeedStore {
     var deleteCachedFeedCallCount = 0
+    var insertCallCount = 0
     
     func deleteCachedFeed() {
         deleteCachedFeedCallCount += 1
+    }
+    
+    func completeDeletion(with error: NSError, at index: Int = 0) {
+        
     }
 }
 
@@ -42,6 +47,18 @@ final class CacheFeedUseCaseTests: EFTesting {
     func save_requestsCacheDeletion() {
         let items = [uniqueItem, uniqueItem]
         let (sut, store) = makeSUT()
+        let deletionError = anyError
+        
+        sut.save(items)
+        store.completeDeletion(with: deletionError)
+        
+        #expect(store.insertCallCount == 0)
+    }
+    
+    @Test("Save does not request cache insertion on deletion error")
+    func save_doesNotRequestCacheInsertion_onDeletionError() {
+        let items = [uniqueItem, uniqueItem]
+        let (sut, store) = makeSUT()
         
         sut.save(items)
         
@@ -67,4 +84,5 @@ extension CacheFeedUseCaseTests {
     }
     
     private var anyURL: URL { URL(string: "any-url.com")! }
+    private var anyError: NSError { NSError(domain: "any error", code: 1) }
 }
