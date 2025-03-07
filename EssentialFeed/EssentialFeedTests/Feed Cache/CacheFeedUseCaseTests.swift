@@ -24,7 +24,9 @@ final class LocalFeedLoader {
                 completion(nil)
                 return
             }
-            if error == nil {
+            if let error {
+                completion(error)
+            } else {
                 store.insert(items, timestamp: currentDate()) { [weak self] error in
                     guard let self else {
                         completion(nil)
@@ -32,8 +34,6 @@ final class LocalFeedLoader {
                     }
                     completion(error)
                 }
-            } else {
-                completion(error)
             }
         }
     }
