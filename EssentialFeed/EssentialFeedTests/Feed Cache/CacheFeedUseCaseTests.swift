@@ -115,51 +115,33 @@ final class CacheFeedUseCaseTests: EFTesting {
     
     @Test("Save fails on deletion error")
     func save_fails_onDeletionError() async {
-        let items = [uniqueItem, uniqueItem]
         let (sut, store) = makeSUT()
         let deletionError = anyError
         
-        let capturedError = await withCheckedContinuation { continuation in
-            sut.save(items) { error in
-                continuation.resume(returning: error)
-            }
+        await expect(sut, toCompleteWithError: deletionError, when: {
             store.completeDeletion(with: deletionError)
-        }
-        
-        #expect(capturedError as? NSError == deletionError)
+        })
     }
     
     @Test("Save fails on insertion error")
     func save_fails_onInsertionError() async {
-        let items = [uniqueItem, uniqueItem]
         let (sut, store) = makeSUT()
         let insertionError = anyError
         
-        let capturedError = await withCheckedContinuation { continuation in
-            sut.save(items) { error in
-                continuation.resume(returning: error)
-            }
+        await expect(sut, toCompleteWithError: insertionError, when: {
             store.completeDeletionSuccessfully()
             store.completeInsertion(with: insertionError)
-        }
-        
-        #expect(capturedError as? NSError == insertionError)
+        })
     }
     
     @Test("Save succeeds on successful cache insertion")
     func save_succeeds_onSuccessfulCacheInsertion() async {
-        let items = [uniqueItem, uniqueItem]
         let (sut, store) = makeSUT()
         
-        let capturedError = await withCheckedContinuation { continuation in
-            sut.save(items) { error in
-                continuation.resume(returning: error)
-            }
+        await expect(sut, toCompleteWithError: nil, when: {
             store.completeDeletionSuccessfully()
             store.completeInsertionSuccessfully()
-        }
-        
-        #expect(capturedError == nil)
+        })
     }
 }
 
@@ -179,5 +161,19 @@ extension CacheFeedUseCaseTests {
         trackForMemoryLeak(store, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         
         return (sut, store)
+    }
+    
+    private func expect(_ sut: LocalFeedLoader, toCompleteWithError receivedError: NSError?,
+                        when action: () -> Void, fileID: String = #fileID, filePath: String = #filePath,
+                        line: Int = #line, column: Int = #column) async {
+        let capturedError = await withCheckedContinuation { continuation in
+            sut.save([uniqueItem]) { error in
+                continuation.resume(returning: error)
+            }
+            action()
+        }
+        
+        #expect(capturedError as? NSError == receivedError,
+                sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
     }
 }
