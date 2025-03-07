@@ -9,6 +9,22 @@ import Testing
 import Foundation
 import EssentialFeed
 
+final class LocalFeedLoader {
+    let store: FeedStore
+    
+    init(store: FeedStore) {
+        self.store = store
+    }
+    
+    func save(_ items: [FeedItem]) {
+        store.deleteCachedFeed { [unowned self] error in
+            if error == nil {
+                store.insert(items)
+            }
+        }
+    }
+}
+
 final class FeedStore {
     typealias DeletionCompletions = (NSError?) -> Void
     
@@ -31,22 +47,6 @@ final class FeedStore {
     
     func insert(_ items: [FeedItem]) {
         insertCallCount += 1
-    }
-}
-
-final class LocalFeedLoader {
-    let store: FeedStore
-    
-    init(store: FeedStore) {
-        self.store = store
-    }
-    
-    func save(_ items: [FeedItem]) {
-        store.deleteCachedFeed { [unowned self] error in
-            if error == nil {
-                store.insert(items)
-            }
-        }
     }
 }
 
