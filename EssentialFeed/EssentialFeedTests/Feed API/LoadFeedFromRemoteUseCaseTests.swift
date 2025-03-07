@@ -1,5 +1,5 @@
 //
-//  RemoteFeedLoaderTests.swift
+//  LoadFeedFromRemoteUseCaseTests.swift
 //  EssentialFeedTests
 //
 //  Created by Revanth Kausikan on 24/02/25.
@@ -9,7 +9,7 @@ import Testing
 import Foundation
 import EssentialFeed
 
-final class RemoteFeedLoaderTests: EFTesting {
+final class LoadFeedFromRemoteUseCaseTests: EFTesting {
     @Test("init does not request data from URL")
     func init_doesNotRequestDataFromURL() {
         let (_, client) = makeSUT()
@@ -113,7 +113,7 @@ final class RemoteFeedLoaderTests: EFTesting {
 }
 
 // MARK: - Helpers
-extension RemoteFeedLoaderTests {
+extension LoadFeedFromRemoteUseCaseTests {
     private func makeSUT(url: URL = URL(string: "www.any-url.com")!,
                          fileID: String = #fileID,
                          filePath: String = #filePath,
