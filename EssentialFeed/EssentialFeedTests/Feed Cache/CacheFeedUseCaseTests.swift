@@ -64,6 +64,10 @@ final class FeedStore {
     func completeInsertion(with error: Error, at index: Int = 0) {
         insertionCompletions[index](error)
     }
+    
+    func completeInsertionSuccessfully(at index: Int = 0) {
+        insertionCompletions[index](nil)
+    }
 }
 
 final class CacheFeedUseCaseTests: EFTesting {
@@ -140,6 +144,22 @@ final class CacheFeedUseCaseTests: EFTesting {
         }
         
         #expect(capturedError as? NSError == insertionError)
+    }
+    
+    @Test("Save succeeds on successful cache insertion")
+    func save_succeeds_onSuccessfulCacheInsertion() async {
+        let items = [uniqueItem, uniqueItem]
+        let (sut, store) = makeSUT()
+        
+        let capturedError = await withCheckedContinuation { continuation in
+            sut.save(items) { error in
+                continuation.resume(returning: error)
+            }
+            store.completeDeletionSuccessfully()
+            store.completeInsertionSuccessfully()
+        }
+        
+        #expect(capturedError == nil)
     }
 }
 
