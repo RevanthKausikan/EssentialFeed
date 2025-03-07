@@ -114,7 +114,7 @@ final class CacheFeedUseCaseTests: EFTesting {
             store.completeDeletion(with: deletionError)
         }
         
-        #expect(store.receivedMessages == [.deleteCachedFeed])
+        #expect(capturedError == deletionError)
     }
 }
 
