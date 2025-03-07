@@ -165,6 +165,10 @@ final class CacheFeedUseCaseTests: EFTesting {
 
 // MARK: - Helpers
 extension CacheFeedUseCaseTests {
+    private var uniqueItem: FeedItem { .init(id: UUID(), description: "any", location: "any", imageURL: anyURL) }
+    private var anyURL: URL { URL(string: "any-url.com")! }
+    private var anyError: NSError { NSError(domain: "any error", code: 1) }
+    
     private func makeSUT(currentDate: @escaping () -> Date = Date.init,
                          fileID: String = #fileID, filePath: String = #filePath,
                          line: Int = #line, column: Int = #column) -> (sut: LocalFeedLoader, store: FeedStore) {
@@ -176,11 +180,4 @@ extension CacheFeedUseCaseTests {
         
         return (sut, store)
     }
-    
-    private var uniqueItem: FeedItem {
-        .init(id: UUID(), description: "any", location: "any", imageURL: anyURL)
-    }
-    
-    private var anyURL: URL { URL(string: "any-url.com")! }
-    private var anyError: NSError { NSError(domain: "any error", code: 1) }
 }
