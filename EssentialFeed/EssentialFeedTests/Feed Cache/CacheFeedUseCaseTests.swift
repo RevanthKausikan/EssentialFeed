@@ -10,15 +10,27 @@ import Foundation
 import EssentialFeed
 
 final class FeedStore {
+    typealias DeletionCompletions = (NSError?) -> Void
+    
     var deleteCachedFeedCallCount = 0
     var insertCallCount = 0
+    var deletionCompletions = [DeletionCompletions]()
     
-    func deleteCachedFeed() {
+    func deleteCachedFeed(completion: @escaping DeletionCompletions) {
         deleteCachedFeedCallCount += 1
+        deletionCompletions.append(completion)
     }
     
     func completeDeletion(with error: NSError, at index: Int = 0) {
-        
+        deletionCompletions[index](error)
+    }
+    
+    func completeDeletionSuccessfully(at index: Int = 0) {
+        deletionCompletions[index](nil)
+    }
+    
+    func insert(_ items: [FeedItem]) {
+        insertCallCount += 1
     }
 }
 
@@ -30,7 +42,11 @@ final class LocalFeedLoader {
     }
     
     func save(_ items: [FeedItem]) {
-        store.deleteCachedFeed()
+        store.deleteCachedFeed { [unowned self] error in
+            if error == nil {
+                store.insert(items)
+            }
+        }
     }
 }
 
@@ -47,6 +63,16 @@ final class CacheFeedUseCaseTests: EFTesting {
     func save_requestsCacheDeletion() {
         let items = [uniqueItem, uniqueItem]
         let (sut, store) = makeSUT()
+        
+        sut.save(items)
+        
+        #expect(store.deleteCachedFeedCallCount == 1)
+    }
+    
+    @Test("Save does not request cache insertion on deletion error")
+    func save_doesNotRequestCacheInsertion_onDeletionError() {
+        let items = [uniqueItem, uniqueItem]
+        let (sut, store) = makeSUT()
         let deletionError = anyError
         
         sut.save(items)
@@ -55,14 +81,15 @@ final class CacheFeedUseCaseTests: EFTesting {
         #expect(store.insertCallCount == 0)
     }
     
-    @Test("Save does not request cache insertion on deletion error")
-    func save_doesNotRequestCacheInsertion_onDeletionError() {
+    @Test("Save requests new cache insertion on successful deletion")
+    func save_requestsNewCacheInsertion_onSuccessfulDeletion() {
         let items = [uniqueItem, uniqueItem]
         let (sut, store) = makeSUT()
         
         sut.save(items)
+        store.completeDeletionSuccessfully()
         
-        #expect(store.deleteCachedFeedCallCount == 1)
+        #expect(store.insertCallCount == 1)
     }
 }
 
