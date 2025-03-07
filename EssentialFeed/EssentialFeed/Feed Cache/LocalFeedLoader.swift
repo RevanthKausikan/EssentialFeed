@@ -1,13 +1,22 @@
-final class LocalFeedLoader {
+//
+//  LocalFeedLoader.swift
+//  EssentialFeed
+//
+//  Created by Revanth Kausikan on 07/03/25.
+//
+
+import Foundation
+
+public final class LocalFeedLoader {
     private let store: FeedStore
     private let currentDate: () -> Date
     
-    init(store: FeedStore, currentDate: @escaping () -> Date) {
+    public init(store: FeedStore, currentDate: @escaping () -> Date) {
         self.store = store
         self.currentDate = currentDate
     }
     
-    func save(_ items: [FeedItem], completion: @escaping (Error?) -> Void) {
+    public func save(_ items: [FeedItem], completion: @escaping (Error?) -> Void) {
         store.deleteCachedFeed { [weak self] error in
             guard let self else {
                 completion(nil)
@@ -32,7 +41,7 @@ final class LocalFeedLoader {
     }
 }
 
-protocol FeedStore {
+public protocol FeedStore {
     typealias DeletionCompletions = (Error?) -> Void
     typealias InsertionCompletions = (Error?) -> Void
     
