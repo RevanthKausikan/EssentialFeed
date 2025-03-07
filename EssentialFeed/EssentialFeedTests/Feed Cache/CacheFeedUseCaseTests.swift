@@ -20,9 +20,10 @@ final class LocalFeedLoader {
     
     func save(_ items: [FeedItem], completion: @escaping (Error?) -> Void) {
         store.deleteCachedFeed { [unowned self] error in
-            completion(error)
             if error == nil {
-                store.insert(items, timestamp: currentDate())
+                store.insert(items, timestamp: currentDate(), completion: completion)
+            } else {
+                completion(error)
             }
         }
     }
@@ -30,8 +31,10 @@ final class LocalFeedLoader {
 
 final class FeedStore {
     typealias DeletionCompletions = (Error?) -> Void
+    typealias InsertionCompletions = (Error?) -> Void
     
     var deletionCompletions = [DeletionCompletions]()
+    var insertionCompletions = [InsertionCompletions]()
     
     enum ReceivedMessage: Equatable {
         case deleteCachedFeed
@@ -53,8 +56,13 @@ final class FeedStore {
         deletionCompletions[index](nil)
     }
     
-    func insert(_ items: [FeedItem], timestamp: Date) {
+    func insert(_ items: [FeedItem], timestamp: Date, completion: @escaping InsertionCompletions) {
+        insertionCompletions.append(completion)
         receivedMessages.append(.insert(items, timestamp))
+    }
+    
+    func completeInsertion(with error: Error, at index: Int = 0) {
+        insertionCompletions[index](error)
     }
 }
 
@@ -115,6 +123,23 @@ final class CacheFeedUseCaseTests: EFTesting {
         }
         
         #expect(capturedError as? NSError == deletionError)
+    }
+    
+    @Test("Save fails on insertion error")
+    func save_fails_onInsertionError() async {
+        let items = [uniqueItem, uniqueItem]
+        let (sut, store) = makeSUT()
+        let insertionError = anyError
+        
+        let capturedError = await withCheckedContinuation { continuation in
+            sut.save(items) { error in
+                continuation.resume(returning: error)
+            }
+            store.completeDeletionSuccessfully()
+            store.completeInsertion(with: insertionError)
+        }
+        
+        #expect(capturedError as? NSError == insertionError)
     }
 }
 
