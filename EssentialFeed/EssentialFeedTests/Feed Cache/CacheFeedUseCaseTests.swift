@@ -18,7 +18,7 @@ final class LocalFeedLoader {
         self.currentDate = currentDate
     }
     
-    func save(_ items: [FeedItem], completion: @escaping (NSError?) -> Void) {
+    func save(_ items: [FeedItem], completion: @escaping (Error?) -> Void) {
         store.deleteCachedFeed { [unowned self] error in
             completion(error)
             if error == nil {
@@ -29,7 +29,7 @@ final class LocalFeedLoader {
 }
 
 final class FeedStore {
-    typealias DeletionCompletions = (NSError?) -> Void
+    typealias DeletionCompletions = (Error?) -> Void
     
     var deletionCompletions = [DeletionCompletions]()
     
@@ -45,7 +45,7 @@ final class FeedStore {
         receivedMessages.append(.deleteCachedFeed)
     }
     
-    func completeDeletion(with error: NSError, at index: Int = 0) {
+    func completeDeletion(with error: Error, at index: Int = 0) {
         deletionCompletions[index](error)
     }
     
@@ -59,7 +59,7 @@ final class FeedStore {
 }
 
 final class CacheFeedUseCaseTests: EFTesting {
-
+    
     @Test("Init doesn't message store upon creation")
     func init_doesNotMessageStoreUponCreation() {
         let (_, store) = makeSUT()
@@ -114,7 +114,7 @@ final class CacheFeedUseCaseTests: EFTesting {
             store.completeDeletion(with: deletionError)
         }
         
-        #expect(capturedError == deletionError)
+        #expect(capturedError as? NSError == deletionError)
     }
 }
 
