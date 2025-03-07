@@ -33,18 +33,16 @@ struct CacheFeedUseCaseTests {
 
     @Test("Init doesn't delete cache upon creation")
     func init_doesNotDeleteCacheUponCreation() {
-        let store = FeedStore()
-        _ = LocalFeedLoader(store: store)
+        let (_, store) = makeSUT()
         
         #expect(store.deleteCachedFeedCallCount == 0)
     }
     
     @Test("Save requests cache deletion")
     func save_requestsCacheDeletion() {
-        let store = FeedStore()
-        let sut = LocalFeedLoader(store: store)
-        
         let items = [uniqueItem, uniqueItem]
+        let (sut, store) = makeSUT()
+        
         sut.save(items)
         
         #expect(store.deleteCachedFeedCallCount == 1)
@@ -53,6 +51,12 @@ struct CacheFeedUseCaseTests {
 
 // MARK: - Helpers
 extension CacheFeedUseCaseTests {
+    private func makeSUT() -> (sut: LocalFeedLoader, store: FeedStore) {
+        let store = FeedStore()
+        let sut = LocalFeedLoader(store: store)
+        return (sut, store)
+    }
+    
     private var uniqueItem: FeedItem {
         .init(id: UUID(), description: "any", location: "any", imageURL: anyURL)
     }
