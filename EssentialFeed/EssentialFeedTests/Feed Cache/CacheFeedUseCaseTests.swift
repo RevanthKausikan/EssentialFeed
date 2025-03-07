@@ -17,7 +17,7 @@ final class FeedStore {
     }
 }
 
-struct LocalFeedLoader {
+final class LocalFeedLoader {
     let store: FeedStore
     
     init(store: FeedStore) {
@@ -29,7 +29,7 @@ struct LocalFeedLoader {
     }
 }
 
-struct CacheFeedUseCaseTests {
+final class CacheFeedUseCaseTests: EFTesting {
 
     @Test("Init doesn't delete cache upon creation")
     func init_doesNotDeleteCacheUponCreation() {
@@ -51,9 +51,14 @@ struct CacheFeedUseCaseTests {
 
 // MARK: - Helpers
 extension CacheFeedUseCaseTests {
-    private func makeSUT() -> (sut: LocalFeedLoader, store: FeedStore) {
+    private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
+                         line: Int = #line, column: Int = #column) -> (sut: LocalFeedLoader, store: FeedStore) {
         let store = FeedStore()
         let sut = LocalFeedLoader(store: store)
+        
+        trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        trackForMemoryLeak(store, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        
         return (sut, store)
     }
     
