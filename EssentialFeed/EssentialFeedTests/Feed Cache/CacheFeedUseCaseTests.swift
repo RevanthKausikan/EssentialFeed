@@ -30,13 +30,18 @@ final class LocalFeedLoader {
 final class FeedStore {
     typealias DeletionCompletions = (NSError?) -> Void
     
-    var deleteCachedFeedCallCount = 0
     var deletionCompletions = [DeletionCompletions]()
-    var insertions = [(items: [FeedItem], timestamp: Date)]()
+    
+    enum ReceivedMessage: Equatable {
+        case deleteCachedFeed
+        case insert([FeedItem], Date)
+    }
+    
+    private(set) var receivedMessages = [ReceivedMessage]()
     
     func deleteCachedFeed(completion: @escaping DeletionCompletions) {
-        deleteCachedFeedCallCount += 1
         deletionCompletions.append(completion)
+        receivedMessages.append(.deleteCachedFeed)
     }
     
     func completeDeletion(with error: NSError, at index: Int = 0) {
@@ -48,17 +53,17 @@ final class FeedStore {
     }
     
     func insert(_ items: [FeedItem], timestamp: Date) {
-        insertions.append((items, timestamp))
+        receivedMessages.append(.insert(items, timestamp))
     }
 }
 
 final class CacheFeedUseCaseTests: EFTesting {
 
-    @Test("Init doesn't delete cache upon creation")
-    func init_doesNotDeleteCacheUponCreation() {
+    @Test("Init doesn't message store upon creation")
+    func init_doesNotMessageStoreUponCreation() {
         let (_, store) = makeSUT()
         
-        #expect(store.deleteCachedFeedCallCount == 0)
+        #expect(store.receivedMessages == [])
     }
     
     @Test("Save requests cache deletion")
@@ -68,7 +73,7 @@ final class CacheFeedUseCaseTests: EFTesting {
         
         sut.save(items)
         
-        #expect(store.deleteCachedFeedCallCount == 1)
+        #expect(store.receivedMessages == [.deleteCachedFeed])
     }
     
     @Test("Save does not request cache insertion on deletion error")
@@ -80,7 +85,7 @@ final class CacheFeedUseCaseTests: EFTesting {
         sut.save(items)
         store.completeDeletion(with: deletionError)
         
-        #expect(store.insertions.count == 0)
+        #expect(store.receivedMessages == [.deleteCachedFeed])
     }
     
     @Test("Save requests new cache insertion with timestamp on successful deletion")
@@ -92,9 +97,7 @@ final class CacheFeedUseCaseTests: EFTesting {
         sut.save(items)
         store.completeDeletionSuccessfully()
         
-        #expect(store.insertions.count == 1)
-        #expect(store.insertions.first?.items == items)
-        #expect(store.insertions.first?.timestamp == timestamp)
+        #expect(store.receivedMessages == [.deleteCachedFeed, .insert(items, timestamp)])
     }
 }
 
