@@ -19,7 +19,11 @@ final class LocalFeedLoader {
     }
     
     func save(_ items: [FeedItem], completion: @escaping (Error?) -> Void) {
-        store.deleteCachedFeed { [unowned self] error in
+        store.deleteCachedFeed { [weak self] error in
+            guard let self else {
+                completion(nil)
+                return
+            }
             if error == nil {
                 store.insert(items, timestamp: currentDate(), completion: completion)
             } else {
@@ -109,6 +113,23 @@ final class CacheFeedUseCaseTests: EFTesting {
             store.completeDeletionSuccessfully()
             store.completeInsertionSuccessfully()
         })
+    }
+    
+    @Test("Save does not deliver deletion error when the instance is deallocated", .timeLimit(.minutes(1)))
+    func save_doesNotDeliverDeletionError_whenInstancIsDeallocated() async {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
+        
+        let capturedError: Error? = await withCheckedContinuation { continuation in
+            sut?.save([uniqueItem]) { error in
+                continuation.resume(returning: error)
+            }
+            
+            sut = nil
+            store.completeDeletion(with: anyError)
+        }
+        
+        #expect(capturedError == nil)
     }
 }
 
