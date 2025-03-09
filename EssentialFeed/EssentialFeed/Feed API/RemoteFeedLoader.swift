@@ -43,7 +43,7 @@ public final class RemoteFeedLoader: FeedLoader {
 }
 
 fileprivate extension Array where Element == RemoteFeedItem {
-    var asModels: [FeedItem] {
-        map { .init(id: $0.id, description: $0.description, location: $0.location, imageURL: $0.image) }
+    var asModels: [FeedImage] {
+        map { .init(id: $0.id, description: $0.description, location: $0.location, url: $0.image) }
     }
 }

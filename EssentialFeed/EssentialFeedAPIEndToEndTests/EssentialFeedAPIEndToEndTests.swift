@@ -14,16 +14,16 @@ final class EssentialFeedAPIEndToEndTests: EFTesting {
     @Test("GET call matches expected data")
     func endToEndTestServerGETFeedResult_matchesFixedTestAccountData() async {
         switch await getFeedResult() {
-        case .success(let items):
-            #expect(items.count == 8, "Expected 8 items but got \(items.count) instead")
-            #expect(items[0] == expectedItem(at: 0))
-            #expect(items[1] == expectedItem(at: 1))
-            #expect(items[2] == expectedItem(at: 2))
-            #expect(items[3] == expectedItem(at: 3))
-            #expect(items[4] == expectedItem(at: 4))
-            #expect(items[5] == expectedItem(at: 5))
-            #expect(items[6] == expectedItem(at: 6))
-            #expect(items[7] == expectedItem(at: 7))
+        case .success(let imageFeed):
+            #expect(imageFeed.count == 8, "Expected 8 items but got \(imageFeed.count) instead")
+            #expect(imageFeed[0] == expectedImage(at: 0))
+            #expect(imageFeed[1] == expectedImage(at: 1))
+            #expect(imageFeed[2] == expectedImage(at: 2))
+            #expect(imageFeed[3] == expectedImage(at: 3))
+            #expect(imageFeed[4] == expectedImage(at: 4))
+            #expect(imageFeed[5] == expectedImage(at: 5))
+            #expect(imageFeed[6] == expectedImage(at: 6))
+            #expect(imageFeed[7] == expectedImage(at: 7))
             
         case .failure(let error): Issue.record("Expected to get success, but received \(error) instead.")
         default: Issue.record("Expected to get results, but didn't.")
@@ -47,12 +47,12 @@ extension EssentialFeedAPIEndToEndTests {
         }
     }
     
-    private func expectedItem(at index: Int) -> FeedItem {
-        FeedItem(
+    private func expectedImage(at index: Int) -> FeedImage {
+        FeedImage(
             id: id(at: index),
             description: description(at: index),
             location: location(at: index),
-            imageURL: imageURL(at: index))
+            url: imageURL(at: index))
     }
     
     private func id(at index: Int) -> UUID {
