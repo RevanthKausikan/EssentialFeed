@@ -20,21 +20,21 @@ final class CacheFeedUseCaseTests: EFTesting {
     
     @Test("Save requests cache deletion")
     func save_requestsCacheDeletion() {
-        let items = [uniqueItem, uniqueItem]
+        let items = getUniqueItems()
         let (sut, store) = makeSUT()
         
-        sut.save(items) { _ in }
+        sut.save(items.models) { _ in }
         
         #expect(store.receivedMessages == [.deleteCachedFeed])
     }
     
     @Test("Save does not request cache insertion on deletion error")
     func save_doesNotRequestCacheInsertion_onDeletionError() {
-        let items = [uniqueItem, uniqueItem]
+        let items = getUniqueItems()
         let (sut, store) = makeSUT()
         let deletionError = anyError
         
-        sut.save(items) { _ in }
+        sut.save(items.models) { _ in }
         store.completeDeletion(with: deletionError)
         
         #expect(store.receivedMessages == [.deleteCachedFeed])
@@ -43,16 +43,14 @@ final class CacheFeedUseCaseTests: EFTesting {
     @Test("Save requests new cache insertion with timestamp on successful deletion")
     func save_requestsNewCacheInsertionWithTimestamp_onSuccessfulDeletion() {
         let timestamp = Date()
-        let items = [uniqueItem, uniqueItem]
-        let localFeedItems = items.map {
-            LocalFeedItem(id: $0.id, description: $0.description, location: $0.location, imageURL: $0.imageURL)
-        }
+        let items = getUniqueItems()
+        
         let (sut, store) = makeSUT(currentDate: { timestamp })
         
-        sut.save(items) { _ in }
+        sut.save(items.models) { _ in }
         store.completeDeletionSuccessfully()
         
-        #expect(store.receivedMessages == [.deleteCachedFeed, .insert(localFeedItems, timestamp)])
+        #expect(store.receivedMessages == [.deleteCachedFeed, .insert(items.local, timestamp)])
     }
     
     @Test("Save fails on deletion error")
@@ -92,7 +90,7 @@ final class CacheFeedUseCaseTests: EFTesting {
         var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
         
         let capturedError: LocalFeedLoader.SaveResult = await withCheckedContinuation { continuation in
-            sut?.save([uniqueItem]) { error in
+            sut?.save(getUniqueItems().models) { error in
                 continuation.resume(returning: error)
             }
             
@@ -108,8 +106,8 @@ final class CacheFeedUseCaseTests: EFTesting {
         let store = FeedStoreSpy()
         var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
         
-        let capturedError: LocalFeedLoader.SaveResult? = await withCheckedContinuation { continuation in
-            sut?.save([uniqueItem]) { error in
+        let capturedError = await withCheckedContinuation { continuation in
+            sut?.save(getUniqueItems().models) { error in
                 continuation.resume(returning: error)
             }
             
@@ -139,6 +137,14 @@ extension CacheFeedUseCaseTests {
         trackForMemoryLeak(store, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         
         return (sut, store)
+    }
+    
+    private func getUniqueItems() -> (models: [FeedItem], local: [LocalFeedItem]) {
+        let items = [uniqueItem, uniqueItem]
+        let localFeedItems = items.map {
+            LocalFeedItem(id: $0.id, description: $0.description, location: $0.location, imageURL: $0.imageURL)
+        }
+        return (items, localFeedItems)
     }
     
     private func expect(_ sut: LocalFeedLoader, toCompleteWithError receivedError: NSError?,
