@@ -80,6 +80,16 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
             store.completeRetrieval(with: feed.local, timestamp: lessThanSevenDaysOld)
         })
     }
+    
+    @Test("Load deletes cache feed on retrival error")
+    func load_deletesCacheFeed_onRetrievalError() {
+        let (sut, store) = makeSUT()
+        
+        sut.load { _ in }
+        store.completeRetrieval(with: anyError)
+        
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
 }
 
 // MARK: - Helpers
