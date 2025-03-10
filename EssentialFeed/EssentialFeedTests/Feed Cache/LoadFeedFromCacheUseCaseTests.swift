@@ -29,36 +29,20 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
     @Test("Load fails on cache retrieval")
     func load_failsOnCacheRetrieval() async {
         let (sut, store) = makeSUT()
-        
         let retrievalError = anyError
-        let capturedError = await withCheckedContinuation { continuation in
-            sut.load { result in
-                switch result {
-                case .failure(let error): continuation.resume(returning: error)
-                default: Issue.record("Expected error but got \(result) instead.")
-                }
-            }
-            store.completeRetrieval(with: retrievalError)
-        }
         
-        #expect(capturedError as NSError == retrievalError)
+        await expect(sut, toCompleteWith: .failure(retrievalError), when: {
+            store.completeRetrieval(with: retrievalError)
+        })
     }
     
     @Test("Load delivers no images on empty cache")
     func load_deliversNoImagesOnEmptyCache() async {
         let (sut, store) = makeSUT()
         
-        let capturedImages = await withCheckedContinuation { continuation in
-            sut.load { result in
-                switch result {
-                case .success(let images): continuation.resume(returning: images)
-                default: Issue.record("Expected success  but got \(result) instead.")
-                }
-            }
+        await expect(sut, toCompleteWith: .success([]), when: {
             store.completeWithEmptyCache()
-        }
-        
-        #expect(capturedImages == [])
+        })
     }
 }
 
@@ -77,5 +61,26 @@ extension LoadFeedFromCacheUseCaseTests {
         trackForMemoryLeak(store, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         
         return (sut, store)
+    }
+    
+    private func expect(_ sut: LocalFeedLoader, toCompleteWith expectedResult: LocalFeedLoader.LoadResult,
+                        when action: () -> Void, fileID: String = #fileID, filePath: String = #filePath,
+                        line: Int = #line, column: Int = #column) async {
+        await withCheckedContinuation { continuation in
+            sut.load { receivedResult in
+                switch (receivedResult, expectedResult) {
+                case (.success(let receivedImages), .success(let expectedImages)):
+                    #expect(receivedImages == expectedImages,
+                            sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                case (.failure(let receivedError), .failure(let expectedError)):
+                    #expect(receivedError as NSError == expectedError as NSError,
+                            sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                default: Issue.record("Expected \(expectedResult) but got \(receivedResult) instead.",
+                                      sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                }
+                continuation.resume()
+            }
+            action()
+        }
     }
 }
