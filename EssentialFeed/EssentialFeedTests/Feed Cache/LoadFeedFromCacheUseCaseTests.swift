@@ -41,7 +41,7 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         let (sut, store) = makeSUT()
         
         await expect(sut, toCompleteWith: .success([]), when: {
-            store.completeWithEmptyCache()
+            store.completeRetrievalWithEmptyCache()
         })
     }
     
@@ -89,6 +89,16 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         store.completeRetrieval(with: anyError)
         
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
+    
+    @Test("Load does not delete cache feed on empty cache")
+    func load_doesNotDeleteCacheFeed_onEmptyCache( ) {
+        let (sut, store) = makeSUT()
+        
+        sut.load { _ in }
+        store.completeRetrievalWithEmptyCache()
+        
+        #expect(store.receivedMessages == [.retrieve])
     }
 }
 
