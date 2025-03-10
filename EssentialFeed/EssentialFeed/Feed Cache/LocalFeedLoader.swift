@@ -24,7 +24,7 @@ public final class LocalFeedLoader {
     public func save(_ feed: [FeedImage], completion: @escaping (SaveResult) -> Void) {
         store.deleteCachedFeed { [weak self] error in
             guard let self else {
-                completion(nil)
+                completion(nil) // TODO: - To fix this, ideally should not pass this...
                 return
             }
             if let error {
@@ -36,7 +36,11 @@ public final class LocalFeedLoader {
     }
     
     public func load(completion: @escaping (LoadResult) -> Void) {
-        store.retrieve { [unowned self] result in
+        store.retrieve { [weak self] result in
+            guard let self else {
+                completion(.success([])) // TODO: - To fix this, ideally should not pass this...
+                return
+            }
             switch result {
             case .failure(let error):
                 store.deleteCachedFeed { _ in }
@@ -58,7 +62,7 @@ public final class LocalFeedLoader {
     private func cache(_ feed: [FeedImage], with completion: @escaping (SaveResult) -> Void) {
         store.insert(feed.asLocal, timestamp: currentDate()) { [weak self] error in
             guard self != nil else {
-                completion(nil)
+                completion(nil) // TODO: - To fix this, ideally should not pass this...
                 return
             }
             completion(error)

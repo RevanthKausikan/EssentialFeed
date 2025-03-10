@@ -139,6 +139,24 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
+    
+    @Test("Load does not deliver results after SUT has been deallocated",
+          .disabled("Testing should be equated to nil. Fix the TODOs"))
+    func load_doesNotDeliverResults_afterSUTHasBeenDeallocated() async {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
+        
+        let capturedResult = await withCheckedContinuation { continuation in
+            sut?.load { result in
+                continuation.resume(returning: result)
+            }
+            
+            sut = nil
+            store.completeRetrievalWithEmptyCache()
+        }
+        
+        #expect(capturedResult == nil)
+    }
 }
 
 // MARK: - Helpers
