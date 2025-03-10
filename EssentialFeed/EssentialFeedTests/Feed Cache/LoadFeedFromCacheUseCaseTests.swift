@@ -41,7 +41,24 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
             store.completeRetrieval(with: retrievalError)
         }
         
-        #expect(capturedError as? NSError == retrievalError)
+        #expect(capturedError as NSError == retrievalError)
+    }
+    
+    @Test("Load delivers no images on empty cache")
+    func load_deliversNoImagesOnEmptyCache() async {
+        let (sut, store) = makeSUT()
+        
+        let capturedImages = await withCheckedContinuation { continuation in
+            sut.load { result in
+                switch result {
+                case .success(let images): continuation.resume(returning: images)
+                default: Issue.record("Expected success  but got \(result) instead.")
+                }
+            }
+            store.completeWithEmptyCache()
+        }
+        
+        #expect(capturedImages == [])
     }
 }
 
