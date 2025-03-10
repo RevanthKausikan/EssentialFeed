@@ -113,6 +113,19 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         
         #expect(store.receivedMessages == [.retrieve])
     }
+    
+    @Test("Load does deletes cache feed on 7 days old cache")
+    func load_doesDeletesCacheFeed_onSevenDaysOldCache( ) {
+        let feed = getUniqueImageFeed()
+        let fixedCurrentDate = Date()
+        let sevenDaysOld = fixedCurrentDate.adding(days: -7)
+        let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
+        
+        sut.load { _ in }
+        store.completeRetrieval(with: feed.local, timestamp: sevenDaysOld)
+        
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
 }
 
 // MARK: - Helpers
