@@ -122,9 +122,9 @@ final class CacheFeedUseCaseTests: EFTesting {
 
 // MARK: - Helpers
 extension CacheFeedUseCaseTests {
-    private var uniqueImage: FeedImage { .init(id: UUID(), description: "any", location: "any", url: anyURL) }
     private var anyURL: URL { URL(string: "any-url.com")! }
     private var anyError: NSError { NSError(domain: "any error", code: 1) }
+    private var uniqueImage: FeedImage { .init(id: UUID(), description: "any", location: "any", url: anyURL) }
     private typealias CacheFeedUseCaseTestsSUT = (sut: LocalFeedLoader, store: FeedStoreSpy)
     
     private func makeSUT(currentDate: @escaping () -> Date = Date.init,
