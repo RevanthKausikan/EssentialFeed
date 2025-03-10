@@ -21,15 +21,30 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
     func load_requestsCacheRetrieval() {
         let (sut, store) = makeSUT()
         
-        sut.load()
-        
+        sut.load { _ in }
         
         #expect(store.receivedMessages == [.retrieve])
+    }
+    
+    @Test("Load fails on cache retrieval")
+    func load_failsOnCacheRetrieval() async {
+        let (sut, store) = makeSUT()
+        
+        let retrievalError = anyError
+        let capturedError = await withCheckedContinuation { continuation in
+            sut.load { error in
+                continuation.resume(returning: error)
+            }
+            store.completeRetrieval(with: retrievalError)
+        }
+        
+        #expect(capturedError as? NSError == retrievalError)
     }
 }
 
 // MARK: - Helpers
 extension LoadFeedFromCacheUseCaseTests {
+    private var anyError: NSError { NSError(domain: "any error", code: 1) }
     private typealias CacheFeedUseCaseTestsSUT = (sut: LocalFeedLoader, store: FeedStoreSpy)
     
     private func makeSUT(currentDate: @escaping () -> Date = Date.init,
