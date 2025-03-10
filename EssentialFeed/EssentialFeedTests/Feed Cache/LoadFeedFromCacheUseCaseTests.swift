@@ -68,6 +68,18 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
             store.completeRetrieval(with: feed.local, timestamp: sevenDaysOld)
         })
     }
+    
+    @Test("Load delivers cached images on > 7 days old cache")
+    func load_deliversCachedImages_onMoreThanSevenDaysOldCache() async {
+        let feed = getUniqueImageFeed()
+        let fixedCurrentDate = Date()
+        let lessThanSevenDaysOld = fixedCurrentDate.adding(days: -7).adding(seconds: -1)
+        let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
+        
+        await expect(sut, toCompleteWith: .success([]), when: {
+            store.completeRetrieval(with: feed.local, timestamp: lessThanSevenDaysOld)
+        })
+    }
 }
 
 // MARK: - Helpers
