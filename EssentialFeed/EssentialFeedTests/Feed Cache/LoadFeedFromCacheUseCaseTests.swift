@@ -32,8 +32,11 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         
         let retrievalError = anyError
         let capturedError = await withCheckedContinuation { continuation in
-            sut.load { error in
-                continuation.resume(returning: error)
+            sut.load { result in
+                switch result {
+                case .failure(let error): continuation.resume(returning: error)
+                default: Issue.record("Expected error but got \(result) instead.")
+                }
             }
             store.completeRetrieval(with: retrievalError)
         }
