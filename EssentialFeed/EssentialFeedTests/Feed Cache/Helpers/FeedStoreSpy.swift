@@ -5,7 +5,7 @@
 //  Created by Revanth Kausikan on 10/03/25.
 //
 
-import Foundation
+import Foundation 
 import EssentialFeed
 
 final class FeedStoreSpy: FeedStore {
@@ -18,6 +18,7 @@ final class FeedStoreSpy: FeedStore {
     enum ReceivedMessage: Equatable {
         case deleteCachedFeed
         case insert([LocalFeedImage], Date)
+        case retrieve
     }
     
     private(set) var receivedMessages = [ReceivedMessage]()
@@ -46,5 +47,9 @@ final class FeedStoreSpy: FeedStore {
     
     func completeInsertionSuccessfully(at index: Int = 0) {
         insertionCompletions[index](nil)
+    }
+    
+    func retrieve() {
+        receivedMessages.append(.retrieve)
     }
 }

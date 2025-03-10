@@ -16,6 +16,16 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         
         #expect(store.receivedMessages == [])
     }
+    
+    @Test("Load requests cache retrieval")
+    func load_requestsCacheRetrieval() {
+        let (sut, store) = makeSUT()
+        
+        sut.load()
+        
+        
+        #expect(store.receivedMessages == [.retrieve])
+    }
 }
 
 // MARK: - Helpers
