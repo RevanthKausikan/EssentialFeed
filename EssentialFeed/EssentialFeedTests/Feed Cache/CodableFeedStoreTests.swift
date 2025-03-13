@@ -132,6 +132,37 @@ final class CodableFeedStoreTests: EFTesting {
         
         #expect(deletionError != nil, "Expected deletion error, got nil")
     }
+    
+    @Test("Store side effects run serially")
+    func storeSideEffectsRunSerially() async {
+        let sut = makeSUT()
+        
+        let op1 = UUID()
+        async let insert1 = withCheckedContinuation { continuation in
+            sut.insert(getUniqueImageFeed().local, timestamp: Date()) { _ in
+                continuation.resume(returning: op1)
+            }
+        }
+        
+        let op2 = UUID()
+        async let delete = withCheckedContinuation { continuation in
+            sut.deleteCachedFeed { _ in
+                continuation.resume(returning: op2)
+            }
+        }
+        
+        let op3 = UUID()
+        async let insert2 = withCheckedContinuation { continuation in
+            sut.insert(getUniqueImageFeed().local, timestamp: Date()) { _ in
+                continuation.resume(returning: op3)
+            }
+
+        }
+        
+        let completedOperationsInOrder = await [insert1, delete, insert2]
+        
+        #expect(completedOperationsInOrder == [op1, op2, op3])
+    }
 }
 
 // MARK: - Helpers
