@@ -7,7 +7,7 @@
 
 /// This is a value object without identity as opposed to entities (models with identity).
 /// Since its not supposed to change, make it `static` and `private init`.
-final class FeedCachePolicy {
+struct FeedCachePolicy {
     private static let calendar = Calendar(identifier: .gregorian)
     private static let maxCacheAgeInDays = 7
     
