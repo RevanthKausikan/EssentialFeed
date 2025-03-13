@@ -114,9 +114,10 @@ final class CodableFeedStoreTests: EFTesting {
     
     @Test("Retrieve delivers failure on retrieval error")
     func retrieve_deliversFailureOnRetrievalError() async {
-        let sut = makeSUT()
+        let storeURL = testSpecificStoreURL
+        let sut = makeSUT(storeURL: storeURL)
         
-        try! "invalid data".write(to: testSpecificStoreURL, atomically: false, encoding: .utf8)
+        try! "invalid data".write(to: storeURL, atomically: false, encoding: .utf8)
         
         await expect(sut, toRetrieve: .failure(anyError))
     }
@@ -124,9 +125,9 @@ final class CodableFeedStoreTests: EFTesting {
 
 // MARK: - Helpers
 extension CodableFeedStoreTests {
-    private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
+    private func makeSUT(storeURL: URL? = nil, fileID: String = #fileID, filePath: String = #filePath,
                          line: Int = #line, column: Int = #column) -> CodableFeedStore {
-        let sut = CodableFeedStore(storeURL: testSpecificStoreURL)
+        let sut = CodableFeedStore(storeURL: storeURL ?? testSpecificStoreURL)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
     }
