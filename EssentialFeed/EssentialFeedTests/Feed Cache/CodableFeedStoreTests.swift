@@ -64,11 +64,11 @@ final class CodableFeedStoreTests: EFTesting {
     
     override init() {
         super.init()
-        try? FileManager.default.removeItem(at: storeURL)
+        try? FileManager.default.removeItem(at: testSpecificStoreURL)
     }
     
     deinit {
-        try? FileManager.default.removeItem(at: storeURL)
+        try? FileManager.default.removeItem(at: testSpecificStoreURL)
     }
     
     @Test("Retrieve delivers empty cache on empty store")
@@ -134,12 +134,12 @@ final class CodableFeedStoreTests: EFTesting {
 extension CodableFeedStoreTests {
     private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
                          line: Int = #line, column: Int = #column) -> CodableFeedStore {
-        let sut = CodableFeedStore(storeURL: storeURL)
+        let sut = CodableFeedStore(storeURL: testSpecificStoreURL)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
     }
     
-    private var storeURL: URL {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("image-feed.store")
+    private var testSpecificStoreURL: URL {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("\(type(of: self)).store")
     }
 }
