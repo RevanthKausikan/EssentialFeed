@@ -175,8 +175,8 @@
 			isa = PBXGroup;
 			children = (
 				E4D98B6C2D7B5971005BED26 /* Feed Cache */,
-				E4D9E0B22D77632E00E4FD1D /* Feed API */,
 				E4D9E0B52D77632E00E4FD1D /* Feed Feature */,
+				E4D9E0B22D77632E00E4FD1D /* Feed API */,
 				E4D9E0B62D77632E00E4FD1D /* EssentialFeed.h */,
 			);
 			path = EssentialFeed;
@@ -194,8 +194,8 @@
 		E4D9E0C62D77634200E4FD1D /* EssentialFeedTests */ = {
 			isa = PBXGroup;
 			children = (
-				E4D98B692D7B329C005BED26 /* Feed Cache */,
 				E4D9E0C42D77634200E4FD1D /* Feed API */,
+				E4D98B692D7B329C005BED26 /* Feed Cache */,
 				E4D9E0C52D77634200E4FD1D /* EFTesting.swift */,
 			);
 			path = EssentialFeedTests;

@@ -38,7 +38,7 @@ public final class LocalFeedLoader {
     public func load(completion: @escaping (LoadResult) -> Void) {
         store.retrieve { [weak self] result in
             guard let self else {
-                completion(.success([])) // TODO: - To fix this, ideally should not pass this...
+//                completion(.success([])) // TODO: - To fix this, ideally should not pass this...
                 return
             }
             switch result {
