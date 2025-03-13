@@ -12,9 +12,13 @@ protocol FeedStoreSpecs {
     func retrieve_deliversFoundValuesOnNonEmptyCache() async
     func retrieve_hasNoSideEffectsOnNonEmptyCache() async
     
-    func insert_overridesPreviouslyInsertedCacheValues() async throws
+    func insert_deliversNoErrorOnEmptyCache() async
+    func insert_deliversNoErrorOnNonEmptyCache() async
+    func insert_overridesPreviouslyInsertedCacheValues() async
     
+    func delete_deliversNoErrorOnEmptyCache() async
     func delete_hasNoSideEffectsOnEmptyCache() async
+    func delete_deliversNoErrorOnNonEmptyCache() async
     func delete_emptiesPreviouslyInsertedCache() async
     
     func storeSideEffectsRunSerially() async
@@ -22,7 +26,7 @@ protocol FeedStoreSpecs {
 
 protocol FailableRetrieveFeedStoreSpecs: FeedStoreSpecs {
     func retrieve_deliversFailureOnRetrievalError() async
-    func retrieve_hasNoSideEffectsOnRetrievalError() async
+    func retrieve_hasNoSideEffectsOnFailure() async
 }
 
 protocol FailableInsertFeedStoreSpecs: FeedStoreSpecs {
