@@ -8,8 +8,37 @@
 import Testing
 import EssentialFeed
 
+protocol FeedStoreSpecs {
+    func retrieve_deliversEmptyCacheOnEmptyStore() async
+    func retrieve_hasNoSideEffectOnEmptyCache() async
+    func retrieve_deliversFoundValuesOnNonEmptyCache() async
+    func retrieve_hasNoSideEffectsOnNonEmptyCache() async
+    
+    func insert_overridesPreviouslyInsertedCacheValues() async throws
+    
+    func delete_hasNoSideEffectsOnEmptyCache() async
+    func delete_emptiesPreviouslyInsertedCache() async
+    
+    func storeSideEffectsRunSerially() async
+}
+
+protocol FailableRetrieveFeedStoreSpecs: FeedStoreSpecs {
+    func retrieve_deliversFailureOnRetrievalError() async
+    func retrieve_hasNoSideEffectsOnRetrievalError() async
+}
+
+protocol FailableInsertFeedStoreSpecs: FeedStoreSpecs {
+    func insert_deliversErrorOnInsertionError() async
+    func insert_hasNoSideEffectsOnInsertionError() async
+}
+
+protocol FailableDeleteFeedStoreSpecs: FeedStoreSpecs {
+    func delete_deliversErrorOnDeletionError() async
+    func delete_hasNoSideEffectsOnDeletionError() async
+}
+
 @Suite(.serialized)
-final class CodableFeedStoreTests: EFTesting {
+final class CodableFeedStoreTests: EFTesting, FeedStoreSpecs {
     
     override init() {
         super.init()
@@ -101,6 +130,16 @@ final class CodableFeedStoreTests: EFTesting {
         #expect(insertionError != nil, "Expected insertion error, got nil")
     }
     
+    @Test("Insert has no side effects on insertion error")
+    func insert_hasNoSideEffectsOnInsertionError() async {
+        let invalidStoreURL = URL(string: "invalid://store-url")!
+        let sut = makeSUT(storeURL: invalidStoreURL)
+        
+        await insert((getUniqueImageFeed().local, Date()), to: sut)
+
+        await expect(sut, toRetrieve: .empty)
+    }
+    
     @Test("Delete has no side effects on empty cache")
     func delete_hasNoSideEffectsOnEmptyCache() async {
         let sut = makeSUT()
@@ -131,6 +170,17 @@ final class CodableFeedStoreTests: EFTesting {
         let deletionError = await deleteCache(from: sut)
         
         #expect(deletionError != nil, "Expected deletion error, got nil")
+    }
+    
+    @Test("Delete has no side effects on deletion error")
+    func delete_hasNoSideEffectsOnDeletionError() async {
+        let noDeletionPermissionURL = cachesDirectory
+        let sut = makeSUT(storeURL: noDeletionPermissionURL)
+        
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError != nil, "Expected deletion error, got nil")
+        await expect(sut, toRetrieve: .empty)
     }
     
     @Test("Store side effects run serially")
