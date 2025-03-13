@@ -6,7 +6,6 @@
 //
 
 import Testing
-import Foundation
 import EssentialFeed
 
 @Suite(.serialized)

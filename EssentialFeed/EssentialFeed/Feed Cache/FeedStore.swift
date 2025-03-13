@@ -5,8 +5,6 @@
 //  Created by Revanth Kausikan on 07/03/25.
 //
 
-import Foundation
-
 public enum RetrieveCacheFeedResult {
     case empty
     case found(feed: [LocalFeedImage], timestamp: Date)

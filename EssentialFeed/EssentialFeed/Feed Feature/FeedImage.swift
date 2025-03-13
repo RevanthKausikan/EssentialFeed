@@ -5,8 +5,6 @@
 //  Created by Revanth Kausikan on 24/02/25.
 //
 
-import Foundation
-
 public struct FeedImage: Equatable {
     public let id: UUID
     public let description: String?

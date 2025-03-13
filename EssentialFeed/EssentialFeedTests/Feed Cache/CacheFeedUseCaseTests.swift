@@ -6,7 +6,6 @@
 //
 
 import Testing
-import Foundation
 import EssentialFeed
 
 final class CacheFeedUseCaseTests: EFTesting {

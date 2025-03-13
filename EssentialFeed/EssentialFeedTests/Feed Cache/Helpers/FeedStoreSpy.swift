@@ -5,7 +5,6 @@
 //  Created by Revanth Kausikan on 10/03/25.
 //
 
-import Foundation 
 import EssentialFeed
 
 final class FeedStoreSpy: FeedStore {
