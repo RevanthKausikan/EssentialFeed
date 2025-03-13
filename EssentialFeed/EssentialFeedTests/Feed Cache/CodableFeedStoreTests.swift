@@ -92,15 +92,7 @@ final class CodableFeedStoreTests: EFTesting {
         let feed = getUniqueImageFeed().local
         let timestamp = Date()
         
-        await withCheckedContinuation { continuation in
-            sut.insert(feed, timestamp: timestamp) { insertionError in
-                switch insertionError {
-                case .none: break
-                default: Issue.record("Expected successful insertion, got \(String(describing: insertionError))")
-                }
-                continuation.resume()
-            }
-        }
+        await insert((feed, timestamp), to: sut)
         
         await expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp))
     }
@@ -111,15 +103,7 @@ final class CodableFeedStoreTests: EFTesting {
          let feed = getUniqueImageFeed().local
          let timestamp = Date()
          
-         await withCheckedContinuation { continuation in
-             sut.insert(feed, timestamp: timestamp) { insertionError in
-                 switch insertionError {
-                 case .none: break
-                 default: Issue.record("Expected successful insertion, got \(String(describing: insertionError))")
-                 }
-                 continuation.resume()
-             }
-         }
+         await insert((feed, timestamp), to: sut)
          
          await expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp))
      }
@@ -132,6 +116,18 @@ extension CodableFeedStoreTests {
         let sut = CodableFeedStore(storeURL: testSpecificStoreURL)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
+    }
+    
+    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) async {
+        await withCheckedContinuation { continuation in
+            sut.insert(cache.feed, timestamp: cache.timestamp) { insertionError in
+                switch insertionError {
+                case .none: break
+                default: Issue.record("Expected successful insertion, got \(String(describing: insertionError))")
+                }
+                continuation.resume()
+            }
+        }
     }
     
     private func expect(_ sut: CodableFeedStore, toRetrieveTwice expectedResult: RetrieveCacheFeedResult,
