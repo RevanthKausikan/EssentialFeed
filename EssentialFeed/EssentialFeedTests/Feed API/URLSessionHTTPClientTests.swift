@@ -85,10 +85,8 @@ final class URLSessionHTTPClientTests: EFTesting {
 
 // MARK: - Helpers
 
-private var anyURL: URL { URL(string: "any-url.com")! }
 private var anyData: Data { Data("any-data".utf8) }
 private var emptyData: Data { Data() }
-private var anyError: NSError { NSError(domain: "any error", code: 1) }
 private var nonHTTPURLResponse: URLResponse { URLResponse(url: anyURL, mimeType: nil, expectedContentLength: 0, textEncodingName: nil) }
 private var anyHTTPURLResponse: HTTPURLResponse? { HTTPURLResponse(url: anyURL, statusCode: 200, httpVersion: nil, headerFields: nil) }
 

@@ -52,9 +52,6 @@ final class ValidateFeedCacheUseCaseTests: EFTesting {
 
 // MARK: - Helpers
 extension ValidateFeedCacheUseCaseTests {
-    private var anyURL: URL { URL(string: "any-url.com")! }
-    private var anyError: NSError { NSError(domain: "any error", code: 1) }
-    private var uniqueImage: FeedImage { .init(id: UUID(), description: "any", location: "any", url: anyURL) }
     private typealias CacheFeedUseCaseTestsSUT = (sut: LocalFeedLoader, store: FeedStoreSpy)
     
     private func makeSUT(currentDate: @escaping () -> Date = Date.init,
@@ -67,23 +64,5 @@ extension ValidateFeedCacheUseCaseTests {
         trackForMemoryLeak(store, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         
         return (sut, store)
-    }
-    
-    private func getUniqueImageFeed() -> (models: [FeedImage], local: [LocalFeedImage]) {
-        let models = [uniqueImage, uniqueImage]
-        let local = models.map {
-            LocalFeedImage(id: $0.id, description: $0.description, location: $0.location, url: $0.url)
-        }
-        return (models, local)
-    }
-}
-
-fileprivate extension Date {
-    func adding(days: Int) -> Self {
-        Calendar(identifier: .gregorian).date(byAdding: .day, value: days, to: self)!
-    }
-    
-    func adding(seconds: TimeInterval) -> Self {
-        self + seconds
     }
 }
