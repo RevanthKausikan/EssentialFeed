@@ -60,6 +60,7 @@ final class CodableFeedStore {
     }
 }
 
+@Suite(.serialized)
 final class CodableFeedStoreTests: EFTesting {
     
     override init() {
@@ -82,17 +83,7 @@ final class CodableFeedStoreTests: EFTesting {
     func retrieve_hasNoSideEffectOnEmptyCache() async {
         let sut = makeSUT()
         
-        await withCheckedContinuation { continuation in
-            sut.retrieve { firstResult in
-                sut.retrieve { secondResult in
-                    switch (firstResult, secondResult) {
-                    case (.empty, .empty): break
-                    default: Issue.record("Expected empty result, got \(firstResult) and \(secondResult)")
-                    }
-                    continuation.resume()
-                }
-            }
-        }
+        await expect(sut, toRetrieveTwice: .empty)
     }
     
    @Test("Retrieve after inserting to empty cache delivers inserted values")
@@ -126,22 +117,11 @@ final class CodableFeedStoreTests: EFTesting {
                  case .none: break
                  default: Issue.record("Expected successful insertion, got \(String(describing: insertionError))")
                  }
-                 
-                 sut.retrieve { firstResult in
-                     sut.retrieve { secondResult in
-                         switch (firstResult, secondResult) {
-                             case let (.found(firstFeed, firstTimestamp), .found(secondFeed, secondTimestamp)):
-                                 #expect(firstFeed == feed)
-                                 #expect(firstTimestamp == timestamp)
-                                 #expect(secondFeed == feed)
-                                 #expect(secondTimestamp == timestamp)
-                         default: Issue.record("Expected found result with \(feed) and \(timestamp), got \(firstResult) and \(secondResult) instead.")
-                         }
-                         continuation.resume()
-                     }
-                 }
+                 continuation.resume()
              }
          }
+         
+         await expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp))
      }
 }
 
@@ -152,6 +132,13 @@ extension CodableFeedStoreTests {
         let sut = CodableFeedStore(storeURL: testSpecificStoreURL)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
+    }
+    
+    private func expect(_ sut: CodableFeedStore, toRetrieveTwice expectedResult: RetrieveCacheFeedResult,
+                        fileID: String = #fileID, filePath: String = #filePath,
+                        line: Int = #line, column: Int = #column) async {
+        await expect(sut, toRetrieve: expectedResult, fileID: fileID, filePath: filePath, line: line, column: column)
+        await expect(sut, toRetrieve: expectedResult, fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
     private func expect(_ sut: CodableFeedStore, toRetrieve expectedResult: RetrieveCacheFeedResult,
