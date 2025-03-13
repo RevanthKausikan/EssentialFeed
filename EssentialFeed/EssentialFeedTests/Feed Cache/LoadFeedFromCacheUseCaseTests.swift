@@ -91,8 +91,8 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         #expect(store.receivedMessages == [.retrieve])
     }
     
-    @Test("Load does not delete cache feed on empty cache")
-    func load_doesNotDeleteCacheFeed_onEmptyCache( ) {
+    @Test("Load has no side effects on empty cache")
+    func load_hasNoSideEffects_onEmptyCache( ) {
         let (sut, store) = makeSUT()
         
         sut.load { _ in }

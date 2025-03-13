@@ -26,6 +26,17 @@ final class ValidateFeedCacheUseCaseTests: EFTesting {
         
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
+    
+    @Test("Validate cache does not delete cache feed on empty cache")
+    func validateCache_doesNotDeleteCacheFeed_onEmptyCache( ) {
+        let (sut, store) = makeSUT()
+        
+        sut.validateCache()
+        store.completeRetrievalWithEmptyCache()
+        
+        #expect(store.receivedMessages == [.retrieve])
+    }
+
 }
 
 // MARK: - Helpers
