@@ -9,12 +9,42 @@ import Testing
 import EssentialFeed
 
 final class CodableFeedStore {
+    private struct Cache: Codable {
+        let feed: [LocalFeedImage]
+        let timestamp: Date
+    }
+    
+    private let storeURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("image-feed.store")
+    
     func retrieve(completion: @escaping FeedStore.RetrievalCompletions) {
-        completion(.empty)
+        guard let data = try? Data(contentsOf: storeURL) else {
+            return completion(.empty)
+        }
+        let decoder = JSONDecoder()
+        let cached = try! decoder.decode(Cache.self, from: data)
+        completion(.found(feed: cached.feed, timestamp: cached.timestamp))
+    }
+    
+    func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping FeedStore.InsertionCompletions) {
+        let encoder = JSONEncoder()
+        let encoded = try! encoder.encode(Cache(feed: feed, timestamp: timestamp))
+        try! encoded.write(to: storeURL)
+        completion(nil)
     }
 }
 
-struct CodableFeedStoreTests {
+final class CodableFeedStoreTests {
+    
+    init() {
+        let storeURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("image-feed.store")
+        try? FileManager.default.removeItem(at: storeURL)
+    }
+    
+    deinit {
+        let storeURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("image-feed.store")
+        try? FileManager.default.removeItem(at: storeURL)
+    }
+    
     @Test("Retrieve delivers empty cache on empty store")
     func retrieve_deliversEmptyCacheOnEmptyStore() async {
         let sut = CodableFeedStore()
@@ -40,6 +70,32 @@ struct CodableFeedStoreTests {
                     switch (firstResult, secondResult) {
                     case (.empty, .empty): break
                     default: Issue.record("Expected empty result, got \(firstResult) and \(secondResult)")
+                    }
+                    continuation.resume()
+                }
+            }
+        }
+    }
+    
+   @Test("Retrieve after inserting to empty cache delivers inserted values")
+    func retrieve_afterInsertingToEmptyCacheDeliveresInsertedValues() async {
+        let sut = CodableFeedStore()
+        let feed = getUniqueImageFeed().local
+        let timestamp = Date()
+        
+        await withCheckedContinuation { continuation in
+            sut.insert(feed, timestamp: timestamp) { insertionError in
+                switch insertionError {
+                case .none: break
+                default: Issue.record("Expected successful insertion, got \(String(describing: insertionError))")
+                }
+                
+                sut.retrieve { retrieveResult in
+                    switch retrieveResult {
+                    case let .found(retrievedFeed, retrievedTimestamp):
+                        #expect(retrievedFeed == feed)
+                        #expect(retrievedTimestamp == timestamp)
+                    default: Issue.record("Expected found result with \(feed) and \(timestamp), got \(retrieveResult) instead.")
                     }
                     continuation.resume()
                 }
