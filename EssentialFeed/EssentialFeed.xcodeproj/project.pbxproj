@@ -15,7 +15,7 @@
 		E4D98B6B2D7B32B8005BED26 /* CacheFeedUseCaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D98B6A2D7B32B8005BED26 /* CacheFeedUseCaseTests.swift */; };
 		E4D98B6E2D7B5978005BED26 /* LocalFeedLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D98B6D2D7B5978005BED26 /* LocalFeedLoader.swift */; };
 		E4D98B702D7B5A17005BED26 /* FeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D98B6F2D7B5A17005BED26 /* FeedStore.swift */; };
-		E4D9E0BB2D77632E00E4FD1D /* EssentialFeed.h in Headers */ = {isa = PBXBuildFile; fileRef = E4D9E0B62D77632E00E4FD1D /* EssentialFeed.h */; };
+		E4D9E0BB2D77632E00E4FD1D /* EssentialFeed.h in Headers */ = {isa = PBXBuildFile; fileRef = E4D9E0B62D77632E00E4FD1D /* EssentialFeed.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E4D9E0BC2D77632E00E4FD1D /* FeedImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D9E0B32D77632E00E4FD1D /* FeedImage.swift */; };
 		E4D9E0BD2D77632E00E4FD1D /* RemoteFeedLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D9E0B02D77632E00E4FD1D /* RemoteFeedLoader.swift */; };
 		E4D9E0BE2D77632E00E4FD1D /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4D9E0AF2D77632E00E4FD1D /* HTTPClient.swift */; };
