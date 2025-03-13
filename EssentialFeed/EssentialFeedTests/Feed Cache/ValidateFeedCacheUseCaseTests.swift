@@ -48,6 +48,33 @@ final class ValidateFeedCacheUseCaseTests: EFTesting {
         
         #expect(store.receivedMessages == [.retrieve])
     }
+    
+    
+    @Test("Validate cache deletes cache feed on 7 days old cache")
+    func validateCache_deletesCacheFeed_onSevenDaysOldCache( ) {
+        let feed = getUniqueImageFeed()
+        let fixedCurrentDate = Date()
+        let sevenDaysOld = fixedCurrentDate.adding(days: -7)
+        let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
+        
+        sut.validateCache()
+        store.completeRetrieval(with: feed.local, timestamp: sevenDaysOld)
+        
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
+    
+    @Test("Validate cache deletes cache feed on > 7 days old cache")
+    func validateCache_deletesCacheFeed_onMoreThanSevenDaysOldCache( ) {
+        let feed = getUniqueImageFeed()
+        let fixedCurrentDate = Date()
+        let moreThanSevenDaysOld = fixedCurrentDate.adding(days: -7).adding(seconds: -1)
+        let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
+        
+        sut.validateCache()
+        store.completeRetrieval(with: feed.local, timestamp: moreThanSevenDaysOld)
+        
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
 }
 
 // MARK: - Helpers
