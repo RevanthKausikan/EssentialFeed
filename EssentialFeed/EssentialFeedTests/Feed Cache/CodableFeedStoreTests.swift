@@ -16,7 +16,7 @@ final class CodableFeedStore {
 
 struct CodableFeedStoreTests {
     @Test("Retrieve delivers empty cache on empty store")
-    func test_retrieve_deliversEmptyCacheOnEmptyStore() async {
+    func retrieve_deliversEmptyCacheOnEmptyStore() async {
         let sut = CodableFeedStore()
         
         await withCheckedContinuation { continuation in
@@ -26,6 +26,23 @@ struct CodableFeedStoreTests {
                 default: Issue.record("Expected empty result, got \(result)")
                 }
                 continuation.resume()
+            }
+        }
+    }
+    
+    @Test("Retrieve has no side effect on empty cache")
+    func retrieve_hasNoSideEffectOnEmptyCache() async {
+        let sut = CodableFeedStore()
+        
+        await withCheckedContinuation { continuation in
+            sut.retrieve { firstResult in
+                sut.retrieve { secondResult in
+                    switch (firstResult, secondResult) {
+                    case (.empty, .empty): break
+                    default: Issue.record("Expected empty result, got \(firstResult) and \(secondResult)")
+                    }
+                    continuation.resume()
+                }
             }
         }
     }
