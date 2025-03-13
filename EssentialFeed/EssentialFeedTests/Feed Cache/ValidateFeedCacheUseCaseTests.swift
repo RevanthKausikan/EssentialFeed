@@ -36,42 +36,42 @@ final class ValidateFeedCacheUseCaseTests: EFTesting {
         #expect(store.receivedMessages == [.retrieve])
     }
 
-    @Test("Validate Cache does not delete cache feed on < 7 days old cache")
-    func validateCache_doesNotDeleteCacheFeed_onLessThanSevenDaysOldCache( ) {
+    @Test("Validate Cache does not delete cache feed on non expired cache")
+    func validateCache_doesNotDeleteCacheFeed_onNonExpiredCache( ) {
         let feed = getUniqueImageFeed()
         let fixedCurrentDate = Date()
-        let lessThanSevenDaysOld = fixedCurrentDate.adding(days: -7).adding(seconds: 1)
+        let nonExpiredTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: 1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         
         sut.validateCache()
-        store.completeRetrieval(with: feed.local, timestamp: lessThanSevenDaysOld)
+        store.completeRetrieval(with: feed.local, timestamp: nonExpiredTimestamp)
         
         #expect(store.receivedMessages == [.retrieve])
     }
     
     
-    @Test("Validate cache deletes cache feed on 7 days old cache")
+    @Test("Validate cache deletes cache feed on cache expiration")
     func validateCache_deletesCacheFeed_onSevenDaysOldCache( ) {
         let feed = getUniqueImageFeed()
         let fixedCurrentDate = Date()
-        let sevenDaysOld = fixedCurrentDate.adding(days: -7)
+        let cacheExpirationTimestamp = fixedCurrentDate.minusFeedCacheMaxAge()
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         
         sut.validateCache()
-        store.completeRetrieval(with: feed.local, timestamp: sevenDaysOld)
+        store.completeRetrieval(with: feed.local, timestamp: cacheExpirationTimestamp)
         
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
     
-    @Test("Validate cache deletes cache feed on > 7 days old cache")
+    @Test("Validate cache deletes cache feed on expired cache")
     func validateCache_deletesCacheFeed_onMoreThanSevenDaysOldCache( ) {
         let feed = getUniqueImageFeed()
         let fixedCurrentDate = Date()
-        let moreThanSevenDaysOld = fixedCurrentDate.adding(days: -7).adding(seconds: -1)
+        let expiredCacheTimestamp = fixedCurrentDate.minusFeedCacheMaxAge().adding(seconds: -1)
         let (sut, store) = makeSUT(currentDate: { fixedCurrentDate })
         
         sut.validateCache()
-        store.completeRetrieval(with: feed.local, timestamp: moreThanSevenDaysOld)
+        store.completeRetrieval(with: feed.local, timestamp: expiredCacheTimestamp)
         
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
