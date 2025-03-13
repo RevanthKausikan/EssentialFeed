@@ -101,8 +101,8 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         #expect(store.receivedMessages == [.retrieve])
     }
     
-    @Test("Load does not delete cache feed on < 7 days old cache")
-    func load_doesNotDeleteCacheFeed_onLessThanSevenDaysOldCache( ) {
+    @Test("Load has no side effects on < 7 days old cache")
+    func load_hasNoSideEffects_onLessThanSevenDaysOldCache( ) {
         let feed = getUniqueImageFeed()
         let fixedCurrentDate = Date()
         let lessThanSevenDaysOld = fixedCurrentDate.adding(days: -7).adding(seconds: 1)
