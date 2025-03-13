@@ -38,7 +38,7 @@ protocol FailableDeleteFeedStoreSpecs: FeedStoreSpecs {
 }
 
 @Suite(.serialized)
-final class CodableFeedStoreTests: EFTesting, FeedStoreSpecs {
+final class CodableFeedStoreTests: EFTesting, FailableRetrieveFeedStoreSpecs, FailableInsertFeedStoreSpecs, FailableDeleteFeedStoreSpecs {
     
     override init() {
         super.init()
