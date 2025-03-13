@@ -64,11 +64,11 @@ final class CodableFeedStoreTests: EFTesting {
     
     override init() {
         super.init()
-        try? FileManager.default.removeItem(at: testSpecificStoreURL)
+        setupEmptyStoreState()
     }
     
     deinit {
-        try? FileManager.default.removeItem(at: testSpecificStoreURL)
+        undoStoreSideEffects()
     }
     
     @Test("Retrieve delivers empty cache on empty store")
@@ -137,6 +137,18 @@ extension CodableFeedStoreTests {
         let sut = CodableFeedStore(storeURL: testSpecificStoreURL)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
+    }
+    
+    private func setupEmptyStoreState() {
+        deleteStoreArtifacts()
+    }
+    
+    private func undoStoreSideEffects() {
+        deleteStoreArtifacts()
+    }
+    
+    private func deleteStoreArtifacts() {
+        try? FileManager.default.removeItem(at: testSpecificStoreURL)
     }
     
     private var testSpecificStoreURL: URL {
