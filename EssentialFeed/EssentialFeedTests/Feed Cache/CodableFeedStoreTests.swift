@@ -46,9 +46,13 @@ final class CodableFeedStore {
         guard let data = try? Data(contentsOf: storeURL) else {
             return completion(.empty)
         }
-        let decoder = JSONDecoder()
-        let cached = try! decoder.decode(Cache.self, from: data)
-        completion(.found(feed: cached.localFeed, timestamp: cached.timestamp))
+        do {
+            let decoder = JSONDecoder()
+            let cached = try decoder.decode(Cache.self, from: data)
+            completion(.found(feed: cached.localFeed, timestamp: cached.timestamp))
+        } catch {
+            completion(.failure(error))
+        }
     }
     
     func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping FeedStore.InsertionCompletions) {
@@ -107,6 +111,15 @@ final class CodableFeedStoreTests: EFTesting {
          
          await expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp))
      }
+    
+    @Test("Retrieve delivers failure on retrieval error")
+    func retrieve_deliversFailureOnRetrievalError() async {
+        let sut = makeSUT()
+        
+        try! "invalid data".write(to: testSpecificStoreURL, atomically: false, encoding: .utf8)
+        
+        await expect(sut, toRetrieve: .failure(anyError))
+    }
 }
 
 // MARK: - Helpers
@@ -143,7 +156,7 @@ extension CodableFeedStoreTests {
         await withCheckedContinuation { continuation in
             sut.retrieve { receivedResult in
                 switch (receivedResult, expectedResult) {
-                case (.empty, .empty): break
+                case (.empty, .empty), (.failure, .failure): break
                 case let (.found(retrievedFeed, retrievedTimestamp), .found(expectedFeed, expectedTimestamp)):
                     #expect(retrievedFeed == expectedFeed, "Expected \(expectedFeed), got \(retrievedFeed)",
                             sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
