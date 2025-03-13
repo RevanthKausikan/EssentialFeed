@@ -131,6 +131,21 @@ final class CodableFeedStoreTests: EFTesting {
         
         await expect(sut, toRetrieveTwice: .failure(anyError))
     }
+    
+    @Test("Insert overrides previously inserted cache values")
+    func insert_overridesPreviouslyInsertedCacheValues() async throws {
+        let sut = makeSUT()
+        
+        var insertionError = await insert((getUniqueImageFeed().local, Date()), to: sut)
+        try #require(insertionError == nil, "Expected no insertion error, got \(String(describing: insertionError))")
+        
+        let latestFeed = getUniqueImageFeed().local
+        let latestTimestamp = Date()
+        insertionError = await insert((latestFeed, latestTimestamp), to: sut)
+        try #require(insertionError == nil, "Expected no insertion error, got \(String(describing: insertionError))")
+        
+        await expect(sut, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp))
+    }
 }
 
 // MARK: - Helpers
@@ -142,14 +157,11 @@ extension CodableFeedStoreTests {
         return sut
     }
     
-    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) async {
+    @discardableResult
+    private func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: CodableFeedStore) async -> Error? {
         await withCheckedContinuation { continuation in
             sut.insert(cache.feed, timestamp: cache.timestamp) { insertionError in
-                switch insertionError {
-                case .none: break
-                default: Issue.record("Expected successful insertion, got \(String(describing: insertionError))")
-                }
-                continuation.resume()
+                continuation.resume(returning: insertionError)
             }
         }
     }
