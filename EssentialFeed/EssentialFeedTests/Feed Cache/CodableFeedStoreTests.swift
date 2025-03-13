@@ -56,9 +56,10 @@ final class CodableFeedStore {
     }
 }
 
-final class CodableFeedStoreTests {
+final class CodableFeedStoreTests: EFTesting {
     
-    init() {
+    override init() {
+        super.init()
         let storeURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("image-feed.store")
         try? FileManager.default.removeItem(at: storeURL)
     }
@@ -129,7 +130,10 @@ final class CodableFeedStoreTests {
 
 // MARK: - Helpers
 extension CodableFeedStoreTests {
-    private func makeSUT() -> CodableFeedStore {
-        CodableFeedStore()
+    private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
+                         line: Int = #line, column: Int = #column) -> CodableFeedStore {
+        let sut = CodableFeedStore()
+        trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        return sut
     }
 }
