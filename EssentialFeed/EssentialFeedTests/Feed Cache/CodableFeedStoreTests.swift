@@ -128,6 +128,36 @@ final class CodableFeedStoreTests: EFTesting {
             }
         }
     }
+    
+    @Test("Retrieve has no side effects on non empty cache")
+     func retrieve_hasNoSideEffectsOnNonEmptyCache() async {
+         let sut = makeSUT()
+         let feed = getUniqueImageFeed().local
+         let timestamp = Date()
+         
+         await withCheckedContinuation { continuation in
+             sut.insert(feed, timestamp: timestamp) { insertionError in
+                 switch insertionError {
+                 case .none: break
+                 default: Issue.record("Expected successful insertion, got \(String(describing: insertionError))")
+                 }
+                 
+                 sut.retrieve { firstResult in
+                     sut.retrieve { secondResult in
+                         switch (firstResult, secondResult) {
+                             case let (.found(firstFeed, firstTimestamp), .found(secondFeed, secondTimestamp)):
+                                 #expect(firstFeed == feed)
+                                 #expect(firstTimestamp == timestamp)
+                                 #expect(secondFeed == feed)
+                                 #expect(secondTimestamp == timestamp)
+                         default: Issue.record("Expected found result with \(feed) and \(timestamp), got \(firstResult) and \(secondResult) instead.")
+                         }
+                         continuation.resume()
+                     }
+                 }
+             }
+         }
+     }
 }
 
 // MARK: - Helpers
