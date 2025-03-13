@@ -56,11 +56,15 @@ final class CodableFeedStore {
     }
     
     func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping FeedStore.InsertionCompletions) {
-        let encoder = JSONEncoder()
-        let cache = Cache(feed: feed.map(CodableFeedImage.init), timestamp: timestamp)
-        let encoded = try! encoder.encode(cache)
-        try! encoded.write(to: storeURL)
-        completion(nil)
+        do {
+            let encoder = JSONEncoder()
+            let cache = Cache(feed: feed.map(CodableFeedImage.init), timestamp: timestamp)
+            let encoded = try encoder.encode(cache)
+            try encoded.write(to: storeURL)
+            completion(nil)
+        } catch {
+            completion(error)
+        }
     }
 }
 
@@ -145,6 +149,16 @@ final class CodableFeedStoreTests: EFTesting {
         try #require(insertionError == nil, "Expected no insertion error, got \(String(describing: insertionError))")
         
         await expect(sut, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp))
+    }
+    
+    @Test("Insert delivers error on insertion error")
+    func insert_deliversErrorOnInsertionError() async {
+        let invalidStoreURL = URL(string: "invalid://store-url")!
+        let sut = makeSUT(storeURL: invalidStoreURL)
+        
+        let insertionError = await insert((getUniqueImageFeed().local, Date()), to: sut)
+        
+        #expect(insertionError != nil, "Expected insertion error, got nil")
     }
 }
 
