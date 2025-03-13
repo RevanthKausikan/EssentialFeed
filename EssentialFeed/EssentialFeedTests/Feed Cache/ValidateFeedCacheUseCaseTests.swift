@@ -75,6 +75,18 @@ final class ValidateFeedCacheUseCaseTests: EFTesting {
         
         #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
     }
+    
+    @Test("Validate cache does not deliver results after SUT has been deallocated")
+    func validateCache_doesNotDeliverResults_afterSUTHasBeenDeallocated() {
+        let store = FeedStoreSpy()
+        var sut: LocalFeedLoader? = LocalFeedLoader(store: store, currentDate: Date.init)
+        
+        sut?.validateCache()
+        
+        sut = nil
+        store.completeRetrieval(with: anyError)
+        #expect(store.receivedMessages == [.retrieve])
+    }
 }
 
 // MARK: - Helpers
