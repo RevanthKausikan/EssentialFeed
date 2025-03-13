@@ -86,8 +86,8 @@ final class CodableFeedStoreTests: EFTesting {
         await expect(sut, toRetrieveTwice: .empty)
     }
     
-   @Test("Retrieve after inserting to empty cache delivers inserted values")
-    func retrieve_afterInsertingToEmptyCache_deliveresInsertedValues() async {
+   @Test("Retrieve delivers found values on non empty cache")
+    func retrieve_deliversFoundValuesOnNonEmptyCache() async {
         let sut = makeSUT()
         let feed = getUniqueImageFeed().local
         let timestamp = Date()
