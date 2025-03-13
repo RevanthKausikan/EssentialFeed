@@ -68,6 +68,7 @@ final class CodableFeedStore {
     }
     
     func deleteCachedFeed(completion: @escaping FeedStore.DeletionCompletions) {
+        try? FileManager.default.removeItem(at: storeURL)
         completion(nil)
     }
 }
@@ -168,6 +169,18 @@ final class CodableFeedStoreTests: EFTesting {
     @Test("Delete has no side effects on empty cache")
     func delete_hasNoSideEffectsOnEmptyCache() async {
         let sut = makeSUT()
+        
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError == nil, "Expected no deletion error, got \(String(describing: deletionError))")
+        await expect(sut, toRetrieve: .empty)
+    }
+    
+    @Test("Delete empties previously inserted cache")
+    func delete_emptiesPreviouslyInsertedCache() async {
+        let sut = makeSUT()
+        
+        await insert((getUniqueImageFeed().local, Date()), to: sut)
         
         let deletionError = await deleteCache(from: sut)
         
