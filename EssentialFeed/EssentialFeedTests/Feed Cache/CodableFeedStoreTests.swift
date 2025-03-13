@@ -68,8 +68,15 @@ final class CodableFeedStore {
     }
     
     func deleteCachedFeed(completion: @escaping FeedStore.DeletionCompletions) {
-        try? FileManager.default.removeItem(at: storeURL)
-        completion(nil)
+        guard FileManager.default.fileExists(atPath: storeURL.path) else {
+            return completion(nil)
+        }
+        do {
+            try FileManager.default.removeItem(at: storeURL)
+            completion(nil)
+        } catch {
+            completion(error)
+        }
     }
 }
 
@@ -187,10 +194,27 @@ final class CodableFeedStoreTests: EFTesting {
         #expect(deletionError == nil, "Expected no deletion error, got \(String(describing: deletionError))")
         await expect(sut, toRetrieve: .empty)
     }
+    
+    @Test("Delete delivers error on deletion error")
+    func delete_deliversErrorOnDeletionError() async {
+        let noDeletionPermissionURL = cachesDirectory
+        let sut = makeSUT(storeURL: noDeletionPermissionURL)
+        
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError != nil, "Expected deletion error, got nil")
+    }
 }
 
 // MARK: - Helpers
 extension CodableFeedStoreTests {
+    private var testSpecificStoreURL: URL {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("\(type(of: self)).store")
+    }
+    private var cachesDirectory: URL {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+    }
+    
     private func makeSUT(storeURL: URL? = nil, fileID: String = #fileID, filePath: String = #filePath,
                          line: Int = #line, column: Int = #column) -> CodableFeedStore {
         let sut = CodableFeedStore(storeURL: storeURL ?? testSpecificStoreURL)
@@ -252,9 +276,5 @@ extension CodableFeedStoreTests {
     
     private func deleteStoreArtifacts() {
         try? FileManager.default.removeItem(at: testSpecificStoreURL)
-    }
-    
-    private var testSpecificStoreURL: URL {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("\(type(of: self)).store")
     }
 }
