@@ -121,6 +121,16 @@ final class CodableFeedStoreTests: EFTesting {
         
         await expect(sut, toRetrieve: .failure(anyError))
     }
+    
+    @Test("Retrieve has no side effects on retrieval error")
+    func retrieve_hasNoSideEffectsOnRetrievalError() async {
+        let storeURL = testSpecificStoreURL
+        let sut = makeSUT(storeURL: storeURL)
+        
+        try! "invalid data".write(to: storeURL, atomically: false, encoding: .utf8)
+        
+        await expect(sut, toRetrieveTwice: .failure(anyError))
+    }
 }
 
 // MARK: - Helpers
