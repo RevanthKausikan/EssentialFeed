@@ -66,6 +66,10 @@ final class CodableFeedStore {
             completion(error)
         }
     }
+    
+    func deleteCachedFeed(completion: @escaping FeedStore.DeletionCompletions) {
+        completion(nil)
+    }
 }
 
 @Suite(.serialized)
@@ -160,6 +164,16 @@ final class CodableFeedStoreTests: EFTesting {
         
         #expect(insertionError != nil, "Expected insertion error, got nil")
     }
+    
+    @Test("Delete has no side effects on empty cache")
+    func delete_hasNoSideEffectsOnEmptyCache() async {
+        let sut = makeSUT()
+        
+        let deletionError = await deleteCache(from: sut)
+        
+        #expect(deletionError == nil, "Expected no deletion error, got \(String(describing: deletionError))")
+        await expect(sut, toRetrieve: .empty)
+    }
 }
 
 // MARK: - Helpers
@@ -176,6 +190,14 @@ extension CodableFeedStoreTests {
         await withCheckedContinuation { continuation in
             sut.insert(cache.feed, timestamp: cache.timestamp) { insertionError in
                 continuation.resume(returning: insertionError)
+            }
+        }
+    }
+    
+    private func deleteCache(from sut: CodableFeedStore) async -> Error? {
+        await withCheckedContinuation { continuation in
+            sut.deleteCachedFeed { deletionError in
+                continuation.resume(returning: deletionError)
             }
         }
     }
