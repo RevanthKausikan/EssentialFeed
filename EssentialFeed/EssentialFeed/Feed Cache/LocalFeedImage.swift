@@ -5,7 +5,7 @@
 //  Created by Revanth Kausikan on 09/03/25.
 //
 
-public struct LocalFeedImage: Equatable, Codable {
+public struct LocalFeedImage: Equatable {
     public let id: UUID
     public let description: String?
     public let location: String?
