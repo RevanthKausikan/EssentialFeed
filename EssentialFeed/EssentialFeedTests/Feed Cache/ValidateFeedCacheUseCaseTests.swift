@@ -16,6 +16,16 @@ final class ValidateFeedCacheUseCaseTests: EFTesting {
         
         #expect(store.receivedMessages == [])
     }
+    
+    @Test("Validate cache deletes cache feed on retrival error")
+    func validateCache_deletesCacheFeed_onRetrievalError() {
+        let (sut, store) = makeSUT()
+        
+        sut.validateCache()
+        store.completeRetrieval(with: anyError)
+        
+        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+    }
 }
 
 // MARK: - Helpers

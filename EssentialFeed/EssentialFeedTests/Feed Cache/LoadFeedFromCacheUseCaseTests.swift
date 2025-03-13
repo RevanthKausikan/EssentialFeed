@@ -81,14 +81,14 @@ final class LoadFeedFromCacheUseCaseTests: EFTesting {
         })
     }
     
-    @Test("Load deletes cache feed on retrival error")
-    func load_deletesCacheFeed_onRetrievalError() {
+    @Test("Load has no side effects on retrival error")
+    func load_hasNoSideEffects_onRetrievalError() {
         let (sut, store) = makeSUT()
         
         sut.load { _ in }
         store.completeRetrieval(with: anyError)
         
-        #expect(store.receivedMessages == [.retrieve, .deleteCachedFeed])
+        #expect(store.receivedMessages == [.retrieve])
     }
     
     @Test("Load does not delete cache feed on empty cache")
