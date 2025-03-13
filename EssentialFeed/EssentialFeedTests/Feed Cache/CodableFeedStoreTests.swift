@@ -37,8 +37,10 @@ protocol FailableDeleteFeedStoreSpecs: FeedStoreSpecs {
     func delete_hasNoSideEffectsOnDeletionError() async
 }
 
+typealias FailableFeedStoreSpecs = FailableRetrieveFeedStoreSpecs & FailableInsertFeedStoreSpecs & FailableDeleteFeedStoreSpecs
+
 @Suite(.serialized)
-final class CodableFeedStoreTests: EFTesting, FailableRetrieveFeedStoreSpecs, FailableInsertFeedStoreSpecs, FailableDeleteFeedStoreSpecs {
+final class CodableFeedStoreTests: EFTesting, FailableFeedStoreSpecs {
     
     override init() {
         super.init()
