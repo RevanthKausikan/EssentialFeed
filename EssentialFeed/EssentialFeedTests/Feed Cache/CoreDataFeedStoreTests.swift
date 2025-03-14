@@ -20,7 +20,7 @@ final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
     @Test("Retrieve - Has no side effect on empty cache")
     func retrieve_hasNoSideEffectOnEmptyCache() async {
         let sut = makeSUT()
-
+        
         await assertThatRetrieveHasNoSideEffectOnEmptyCache(on: sut)
     }
     
@@ -70,7 +70,8 @@ extension CoreDataFeedStoreTests {
     private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
                          line: Int = #line, column: Int = #column) -> CoreDataFeedStore {
         let storeBundle = Bundle(for: CoreDataFeedStore.self)
-        let sut = try! CoreDataFeedStore(bundle: storeBundle)
+        let storeURL = URL(fileURLWithPath: "/dev/null")
+        let sut = try! CoreDataFeedStore(storeURL: storeURL, bundle: storeBundle)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
     }
