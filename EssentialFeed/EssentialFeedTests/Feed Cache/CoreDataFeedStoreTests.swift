@@ -73,8 +73,11 @@ final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
         await assertThatDeleteHasNoSideEffectsOnEmptyCache(on: sut)
     }
     
+    @Test("Delete - Deliver no error on non-empty cache")
     func delete_deliversNoErrorOnNonEmptyCache() async {
+        let sut = makeSUT()
         
+        await assertThatDeleteDeliversNoErrorOnNonEmptyCache(on: sut)
     }
     
     func delete_emptiesPreviouslyInsertedCache() async {
