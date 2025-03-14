@@ -17,8 +17,11 @@ final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
         await assertThatRetrieveDeliversEmptyCacheOnEmptyStore(on: sut)
     }
     
+    @Test("Retrieve - Has no side effect on empty cache")
     func retrieve_hasNoSideEffectOnEmptyCache() async {
-        
+        let sut = makeSUT()
+
+        await assertThatRetrieveHasNoSideEffectOnEmptyCache(on: sut)
     }
     
     func retrieve_deliversFoundValuesOnNonEmptyCache() async {
