@@ -30,7 +30,7 @@ extension NSPersistentContainer {
     }
 }
 
-extension NSManagedObjectModel {
+private extension NSManagedObjectModel {
     static func with(name: String, in bundle: Bundle) -> NSManagedObjectModel? {
         bundle
             .url(forResource: name, withExtension: "momd")
