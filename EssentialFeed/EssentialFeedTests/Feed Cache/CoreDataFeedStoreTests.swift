@@ -87,8 +87,11 @@ final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
         await assertThatDeleteEmptiesPreviouslyInsertedCache(on: sut)
     }
     
+    @Test("Core data store side effects run serially")
     func storeSideEffectsRunSerially() async {
+        let sut = makeSUT()
         
+        await assertThatSideEffectsRunSerially(on: sut)
     }
 }
 
