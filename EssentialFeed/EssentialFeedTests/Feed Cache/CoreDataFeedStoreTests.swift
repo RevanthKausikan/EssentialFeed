@@ -10,8 +10,11 @@ import EssentialFeed
 
 @Suite(.serialized)
 final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
+    @Test("Retrieve - Deliver empty cache on empty store")
     func retrieve_deliversEmptyCacheOnEmptyStore() async {
+        let sut = makeSUT()
         
+        await assertThatRetrieveDeliversEmptyCacheOnEmptyStore(on: sut)
     }
     
     func retrieve_hasNoSideEffectOnEmptyCache() async {
@@ -56,5 +59,15 @@ final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
     
     func storeSideEffectsRunSerially() async {
         
+    }
+}
+
+// MARK: - Helpers
+extension CoreDataFeedStoreTests {
+    private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
+                         line: Int = #line, column: Int = #column) -> CoreDataFeedStore {
+        let sut = CoreDataFeedStore()
+        trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        return sut
     }
 }
