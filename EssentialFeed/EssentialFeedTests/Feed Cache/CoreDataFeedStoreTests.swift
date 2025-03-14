@@ -52,8 +52,11 @@ final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
         await assertThatInsertDeliversNoErrorOnNonEmptyCache(on: sut)
     }
     
+    @Test("Insert - Overrides previously inserted cache values")
     func insert_overridesPreviouslyInsertedCacheValues() async {
+        let sut = makeSUT()
         
+        await assertThatInsertOverridesPreviouslyInsertedCacheValues(on: sut)
     }
     
     func delete_deliversNoErrorOnEmptyCache() async {
