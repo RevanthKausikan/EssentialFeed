@@ -38,8 +38,11 @@ final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
         await assertThatRetrieveHasNoSideEffectsOnNonEmptyCache(on: sut)
     }
     
+    @Test("Insert - Deliver no error on empty cache")
     func insert_deliversNoErrorOnEmptyCache() async {
+        let sut = makeSUT()
         
+        await assertThatInsertDeliversNoErrorOnEmptyCache(on: sut)
     }
     
     func insert_deliversNoErrorOnNonEmptyCache() async {
