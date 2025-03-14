@@ -53,21 +53,21 @@ final class CodableFeedStoreTests: EFTesting, FailableFeedStoreSpecs {
      }
     
     @Test("Retrieve delivers failure on retrieval error")
-    func retrieve_deliversFailureOnRetrievalError() async {
+    func retrieve_deliversFailureOnRetrievalError() async throws {
         let storeURL = testSpecificStoreURL
         let sut = makeSUT(storeURL: storeURL)
         
-        try! "invalid data".write(to: storeURL, atomically: false, encoding: .utf8)
+        try "invalid data".write(to: storeURL, atomically: false, encoding: .utf8)
         
         await assertThatRetrieveDeliversFailureOnRetrievalError(on: sut)
     }
     
     @Test("Retrieve has no side effects on Failure")
-    func retrieve_hasNoSideEffectsOnFailure() async {
+    func retrieve_hasNoSideEffectsOnFailure() async throws {
         let storeURL = testSpecificStoreURL
         let sut = makeSUT(storeURL: storeURL)
         
-        try! "invalid data".write(to: storeURL, atomically: false, encoding: .utf8)
+        try "invalid data".write(to: storeURL, atomically: false, encoding: .utf8)
         
         await assertThatRetrieveHasNoSideEffectsOnFailure(on: sut)
     }
@@ -164,8 +164,9 @@ final class CodableFeedStoreTests: EFTesting, FailableFeedStoreSpecs {
 // MARK: - Helpers
 extension CodableFeedStoreTests {
     private var testSpecificStoreURL: URL {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("\(type(of: self)).store")
+        cachesDirectory.appendingPathComponent("\(type(of: self)).store")
     }
+    
     private var cachesDirectory: URL {
         FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
     }
