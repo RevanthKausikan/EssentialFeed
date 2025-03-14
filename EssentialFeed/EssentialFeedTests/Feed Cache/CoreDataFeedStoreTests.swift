@@ -69,7 +69,8 @@ final class CoreDataFeedStoreTests: EFTesting, FeedStoreSpecs {
 extension CoreDataFeedStoreTests {
     private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
                          line: Int = #line, column: Int = #column) -> CoreDataFeedStore {
-        let sut = CoreDataFeedStore()
+        let storeBundle = Bundle(for: CoreDataFeedStore.self)
+        let sut = try! CoreDataFeedStore(bundle: storeBundle)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
     }
