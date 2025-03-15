@@ -78,9 +78,11 @@ extension EssentialFeedCacheIntegrationTests {
                       fileID: String = #fileID, filePath: String = #filePath,
                       line: Int = #line, column: Int = #column) async {
         await withCheckedContinuation { continuation in
-            sut.save(feed) { saveError in
-                #expect(saveError == nil,
-                        sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+            sut.save(feed) { result in
+                if case let Result.failure(saveError) = result {
+                    #expect(saveError == nil,
+                            sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                }
                 continuation.resume()
             }
         }

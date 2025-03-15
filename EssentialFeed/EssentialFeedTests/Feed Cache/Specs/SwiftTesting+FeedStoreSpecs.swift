@@ -165,8 +165,12 @@ extension FeedStoreSpecs {
     @discardableResult
     func insert(_ cache: (feed: [LocalFeedImage], timestamp: Date), to sut: FeedStore) async -> Error? {
         await withCheckedContinuation { continuation in
-            sut.insert(cache.feed, timestamp: cache.timestamp) { insertionError in
-                continuation.resume(returning: insertionError)
+            sut.insert(cache.feed, timestamp: cache.timestamp) { result in
+                if case let Result.failure(insertionError) = result {
+                    continuation.resume(returning: insertionError)
+                } else {
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }
@@ -174,8 +178,12 @@ extension FeedStoreSpecs {
     @discardableResult
     func deleteCache(from sut: FeedStore) async -> Error? {
         await withCheckedContinuation { continuation in
-            sut.deleteCachedFeed { deletionError in
-                continuation.resume(returning: deletionError)
+            sut.deleteCachedFeed { result in
+                if case let Result.failure(deletionError) = result {
+                    continuation.resume(returning: deletionError)
+                } else {
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }
