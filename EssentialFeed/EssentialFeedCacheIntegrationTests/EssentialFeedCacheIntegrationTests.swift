@@ -23,15 +23,7 @@ final class EssentialFeedCacheIntegrationTests: EFTesting {
     func load_deliversNoItemsOnEmptyCache() async throws {
         let sut = try makeSUT()
         
-        await withCheckedContinuation { continuation in
-            sut.load { result in
-                switch result {
-                case .success(let imageFeed): #expect(imageFeed.isEmpty)
-                default: Issue.record("Expected empty result, got \(result)")
-                }
-                continuation.resume()
-            }
-        }
+        await expect(sut, toLoad: [])
     }
     
     @Test("Load delivers items saved on separate instance")
@@ -47,15 +39,7 @@ final class EssentialFeedCacheIntegrationTests: EFTesting {
             }
         }
         
-        await withCheckedContinuation { continuation in
-            sutToPerformLoad.load { result in
-                switch result {
-                case .success(let imageFeed): #expect(imageFeed == feed)
-                default: Issue.record("Expected \(feed), got \(result)")
-                }
-                continuation.resume()
-            }
-        }
+        await expect(sutToPerformLoad, toLoad: feed)
     }
 }
 
@@ -78,6 +62,24 @@ extension EssentialFeedCacheIntegrationTests {
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         trackForMemoryLeak(store, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
+    }
+    
+    private func expect(_ sut: LocalFeedLoader, toLoad feed: [FeedImage],
+                        fileID: String = #fileID, filePath: String = #filePath,
+                        line: Int = #line, column: Int = #column) async {
+        await withCheckedContinuation { continuation in
+            sut.load { result in
+                switch result {
+                case .success(let imageFeed):
+                    #expect(imageFeed == feed,
+                            sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                default:
+                    Issue.record("Expected \(feed), got \(result)",
+                                 sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                }
+                continuation.resume()
+            }
+        }
     }
     
     private func setupEmptyStoreState() {
