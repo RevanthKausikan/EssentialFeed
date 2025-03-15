@@ -5,15 +5,7 @@
 //  Created by Revanth Kausikan on 07/03/25.
 //
 
-public struct CachedFeed {
-    public let feed: [LocalFeedImage]
-    public let timestamp: Date
-    
-    public init(feed: [LocalFeedImage], timestamp: Date) {
-        self.feed = feed
-        self.timestamp = timestamp
-    }
-}
+public typealias CachedFeed = (feed: [LocalFeedImage], timestamp: Date)
 
 public protocol FeedStore {
     typealias DeletionCompletion = (Error?) -> Void
