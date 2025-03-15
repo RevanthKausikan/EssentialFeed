@@ -65,7 +65,9 @@
 		E41735AD2D85729F0027050C /* Exceptions for "EssentialFeedTests" folder in "EssentialFeedCacheIntegrationTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Feed Cache/Helpers/FeedCacheTestHelpers.swift",
 				Helpers/EFTesting.swift,
+				Helpers/SharedTestHelpers.swift,
 			);
 			target = E41734722D856E860027050C /* EssentialFeedCacheIntegrationTests */;
 		};

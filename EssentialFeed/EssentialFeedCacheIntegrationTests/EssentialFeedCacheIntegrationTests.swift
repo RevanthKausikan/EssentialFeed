@@ -24,6 +24,30 @@ final class EssentialFeedCacheIntegrationTests: EFTesting {
             }
         }
     }
+    
+    @Test("Load delivers items saved on separate instance")
+    func load_deliversItemsSavedOnSeparateInstance() async throws {
+        let sutToPerformSave = try makeSUT()
+        let sutToPerformLoad = try makeSUT()
+        let feed = getUniqueImageFeed().models
+        
+        await withCheckedContinuation { continuation in
+            sutToPerformSave.save(feed) { saveError in
+                #expect(saveError == nil)
+                continuation.resume()
+            }
+        }
+        
+        await withCheckedContinuation { continuation in
+            sutToPerformLoad.load { result in
+                switch result {
+                case .success(let imageFeed): #expect(imageFeed == feed)
+                default: Issue.record("Expected \(feed), got \(result)")
+                }
+                continuation.resume()
+            }
+        }
+    }
 }
 
 // MARK: - Helpers
