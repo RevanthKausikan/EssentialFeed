@@ -10,6 +10,15 @@ import EssentialFeed
 
 final class EssentialFeedCacheIntegrationTests: EFTesting {
     
+    override init() {
+        super.init()
+        setupEmptyStoreState()
+    }
+    
+    deinit {
+        undoStoreSideEffects()
+    }
+    
     @Test("Load delivers no items on empty cache")
     func load_deliversNoItemsOnEmptyCache() async throws {
         let sut = try makeSUT()
@@ -69,5 +78,17 @@ extension EssentialFeedCacheIntegrationTests {
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         trackForMemoryLeak(store, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
+    }
+    
+    private func setupEmptyStoreState() {
+        deleteStoreArtifacts()
+    }
+    
+    private func undoStoreSideEffects() {
+        deleteStoreArtifacts()
+    }
+    
+    private func deleteStoreArtifacts() {
+        try? FileManager.default.removeItem(at: testSpecificStoreURL)
     }
 }
