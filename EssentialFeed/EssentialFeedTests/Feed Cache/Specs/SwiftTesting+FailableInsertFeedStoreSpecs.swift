@@ -22,7 +22,7 @@ extension FailableInsertFeedStoreSpecs where Self: EFTesting {
                                                          line: Int = #line, column: Int = #column) async {
         await insert((getUniqueImageFeed().local, Date()), to: sut)
         
-        await expect(sut, toRetrieve: .success(.empty),
+        await expect(sut, toRetrieve: .success(nil),
                      fileID: fileID, filePath: filePath, line: line, column: column)
     }
 }

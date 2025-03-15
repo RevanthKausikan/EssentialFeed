@@ -22,7 +22,7 @@ extension FailableDeleteFeedStoreSpecs where Self: EFTesting {
                                                          line: Int = #line, column: Int = #column) async {
         await deleteCache(from: sut)
         
-        await expect(sut, toRetrieve: .success(.empty),
+        await expect(sut, toRetrieve: .success(nil),
                      fileID: fileID, filePath: filePath, line: line, column: column)
     }
 }
