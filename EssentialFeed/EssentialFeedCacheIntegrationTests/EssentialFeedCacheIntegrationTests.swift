@@ -8,6 +8,7 @@
 import Testing
 import EssentialFeed
 
+@Suite(.serialized)
 final class EssentialFeedCacheIntegrationTests: EFTesting {
     
     override init() {
@@ -40,6 +41,31 @@ final class EssentialFeedCacheIntegrationTests: EFTesting {
         }
         
         await expect(sutToPerformLoad, toLoad: feed)
+    }
+    
+    @Test("Save overrides items saved on separate instance")
+    func save_overridesItemsSavedOnSeparateInstance() async throws {
+        let sutToPerformFirstSave = try makeSUT()
+        let sutToPerformSecondSave = try makeSUT()
+        let sutToPerformLoad = try makeSUT()
+        let firstFeed = getUniqueImageFeed().models
+        let latestFeed = getUniqueImageFeed().models
+        
+        await withCheckedContinuation { continuation in
+            sutToPerformFirstSave.save(firstFeed) { saveError in
+                #expect(saveError == nil)
+                continuation.resume()
+            }
+        }
+        
+        await withCheckedContinuation { continuation in
+            sutToPerformSecondSave.save(latestFeed) { saveError in
+                #expect(saveError == nil)
+                continuation.resume()
+            }
+        }
+        
+        await expect(sutToPerformLoad, toLoad: latestFeed)
     }
 }
 
