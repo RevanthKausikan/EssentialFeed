@@ -25,17 +25,14 @@ final class EssentialFeedAPIEndToEndTests: EFTesting {
             #expect(imageFeed[7] == expectedImage(at: 7))
             
         case .failure(let error): Issue.record("Expected to get success, but received \(error) instead.")
-        default: Issue.record("Expected to get results, but didn't.")
         }
     }
 }
 
 // MARK: - Helpers
 extension EssentialFeedAPIEndToEndTests {
-    private func getFeedResult(fileID: String = #fileID,
-                               filePath: String = #filePath,
-                               line: Int = #line,
-                               column: Int = #column) async -> LoadFeedResult {
+    private func getFeedResult(fileID: String = #fileID, filePath: String = #filePath,
+                               line: Int = #line, column: Int = #column) async -> FeedLoader.Result {
         let testServerURL = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
         let client = URLSessionHTTPClient(session: URLSession(configuration: .ephemeral))
         let loader = RemoteFeedLoader(url: testServerURL, client: client)
