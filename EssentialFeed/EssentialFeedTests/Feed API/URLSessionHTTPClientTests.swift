@@ -131,18 +131,15 @@ extension URLSessionHTTPClientTests {
     
     private func resultFor(data: Data?, response: URLResponse?, error: Error?,
                            fileID: String = #fileID, filePath: String = #filePath,
-                           line: Int = #line, column: Int = #column) async -> HTTPClientResult {
+                           line: Int = #line, column: Int = #column) async -> HTTPClient.Result {
         URLProtocolStub.stub(data: data, response: response, error: error)
         let sut = makeSUT(fileID: fileID, filePath: filePath, line: line, column: column)
         
-        var capturedResult: HTTPClientResult!
-        await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             sut.get(from: anyURL) { result in
-                capturedResult = result
-                continuation.resume()
+                continuation.resume(returning: result)
             }
         }
-        return capturedResult
     }
 }
 
