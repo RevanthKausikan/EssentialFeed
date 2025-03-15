@@ -12,13 +12,15 @@ extension FeedStoreSpecs where Self: EFTesting {
     func assertThatRetrieveDeliversEmptyCacheOnEmptyStore(on sut: FeedStore,
                                                           fileID: String = #fileID, filePath: String = #filePath,
                                                           line: Int = #line, column: Int = #column) async {
-        await expect(sut, toRetrieve: .empty, fileID: fileID, filePath: filePath, line: line, column: column)
+        await expect(sut, toRetrieve: .success(.empty),
+                     fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
     func assertThatRetrieveHasNoSideEffectOnEmptyCache(on sut: FeedStore,
                                                        fileID: String = #fileID, filePath: String = #filePath,
                                                        line: Int = #line, column: Int = #column) async {
-        await expect(sut, toRetrieveTwice: .empty, fileID: fileID, filePath: filePath, line: line, column: column)
+        await expect(sut, toRetrieveTwice: .success(.empty),
+                     fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
     func assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on sut: FeedStore,
@@ -29,7 +31,7 @@ extension FeedStoreSpecs where Self: EFTesting {
         
         await insert((feed, timestamp), to: sut)
         
-        await expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp),
+        await expect(sut, toRetrieve: .success(.found(feed: feed, timestamp: timestamp)),
                      fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
@@ -41,7 +43,7 @@ extension FeedStoreSpecs where Self: EFTesting {
         
         await insert((feed, timestamp), to: sut)
         
-        await expect(sut, toRetrieveTwice: .found(feed: feed, timestamp: timestamp),
+        await expect(sut, toRetrieveTwice: .success(.found(feed: feed, timestamp: timestamp)),
                      fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
@@ -79,7 +81,7 @@ extension FeedStoreSpecs where Self: EFTesting {
         #expect(latestInsertionError == nil,
                 sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         
-        await expect(sut, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp),
+        await expect(sut, toRetrieve: .success(.found(feed: latestFeed, timestamp: latestTimestamp)),
                      fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
@@ -97,7 +99,7 @@ extension FeedStoreSpecs where Self: EFTesting {
                                                       line: Int = #line, column: Int = #column) async {
         await deleteCache(from: sut)
         
-        await expect(sut, toRetrieve: .empty,
+        await expect(sut, toRetrieve: .success(.empty),
                      fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
@@ -125,7 +127,7 @@ extension FeedStoreSpecs where Self: EFTesting {
         
         await deleteCache(from: sut)
         
-        await expect(sut, toRetrieve: .empty,
+        await expect(sut, toRetrieve: .success(.empty),
                      fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
@@ -178,21 +180,21 @@ extension FeedStoreSpecs {
         }
     }
     
-    func expect(_ sut: FeedStore, toRetrieveTwice expectedResult: RetrieveCacheFeedResult,
+    func expect(_ sut: FeedStore, toRetrieveTwice expectedResult: FeedStore.RetrieveResult,
                         fileID: String = #fileID, filePath: String = #filePath,
                         line: Int = #line, column: Int = #column) async {
         await expect(sut, toRetrieve: expectedResult, fileID: fileID, filePath: filePath, line: line, column: column)
         await expect(sut, toRetrieve: expectedResult, fileID: fileID, filePath: filePath, line: line, column: column)
     }
     
-    func expect(_ sut: FeedStore, toRetrieve expectedResult: RetrieveCacheFeedResult,
+    func expect(_ sut: FeedStore, toRetrieve expectedResult: FeedStore.RetrieveResult,
                         fileID: String = #fileID, filePath: String = #filePath,
                         line: Int = #line, column: Int = #column) async {
         await withCheckedContinuation { continuation in
             sut.retrieve { receivedResult in
                 switch (receivedResult, expectedResult) {
-                case (.empty, .empty), (.failure, .failure): break
-                case let (.found(retrievedFeed, retrievedTimestamp), .found(expectedFeed, expectedTimestamp)):
+                case (.success(.empty), .success(.empty)), (.failure, .failure): break
+                case let (.success(.found(retrievedFeed, retrievedTimestamp)), .success(.found(expectedFeed, expectedTimestamp))):
                     #expect(retrievedFeed == expectedFeed, "Expected \(expectedFeed), got \(retrievedFeed)",
                             sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
                     #expect(retrievedTimestamp == expectedTimestamp, "Expected \(expectedTimestamp), got \(retrievedTimestamp)",
