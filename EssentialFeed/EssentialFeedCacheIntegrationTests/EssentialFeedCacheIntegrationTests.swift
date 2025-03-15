@@ -33,12 +33,7 @@ final class EssentialFeedCacheIntegrationTests: EFTesting {
         let sutToPerformLoad = try makeSUT()
         let feed = getUniqueImageFeed().models
         
-        await withCheckedContinuation { continuation in
-            sutToPerformSave.save(feed) { saveError in
-                #expect(saveError == nil)
-                continuation.resume()
-            }
-        }
+        await save(feed, using: sutToPerformSave)
         
         await expect(sutToPerformLoad, toLoad: feed)
     }
@@ -51,19 +46,8 @@ final class EssentialFeedCacheIntegrationTests: EFTesting {
         let firstFeed = getUniqueImageFeed().models
         let latestFeed = getUniqueImageFeed().models
         
-        await withCheckedContinuation { continuation in
-            sutToPerformFirstSave.save(firstFeed) { saveError in
-                #expect(saveError == nil)
-                continuation.resume()
-            }
-        }
-        
-        await withCheckedContinuation { continuation in
-            sutToPerformSecondSave.save(latestFeed) { saveError in
-                #expect(saveError == nil)
-                continuation.resume()
-            }
-        }
+        await save(firstFeed, using: sutToPerformFirstSave)
+        await save(latestFeed, using: sutToPerformSecondSave)
         
         await expect(sutToPerformLoad, toLoad: latestFeed)
     }
@@ -88,6 +72,18 @@ extension EssentialFeedCacheIntegrationTests {
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         trackForMemoryLeak(store, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return sut
+    }
+    
+    private func save(_ feed: [FeedImage], using sut: LocalFeedLoader,
+                      fileID: String = #fileID, filePath: String = #filePath,
+                      line: Int = #line, column: Int = #column) async {
+        await withCheckedContinuation { continuation in
+            sut.save(feed) { saveError in
+                #expect(saveError == nil,
+                        sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+                continuation.resume()
+            }
+        }
     }
     
     private func expect(_ sut: LocalFeedLoader, toLoad feed: [FeedImage],
