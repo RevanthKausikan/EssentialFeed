@@ -139,7 +139,7 @@ final class CodableFeedStoreTests: EFTesting, FailableFeedStoreSpecs {
     
     @Test("Delete delivers error on deletion error")
     func delete_deliversErrorOnDeletionError() async {
-        let noDeletionPermissionURL = cachesDirectory
+        let noDeletionPermissionURL = noDeletePermissionURL
         let sut = makeSUT(storeURL: noDeletionPermissionURL)
         
         await assertThatDeleteDeliversErrorOnDeletionError(on: sut)
@@ -168,6 +168,10 @@ extension CodableFeedStoreTests {
     }
     
     private var cachesDirectory: URL {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+    }
+    
+    private var noDeletePermissionURL: URL {
         FileManager.default.urls(for: .cachesDirectory, in: .systemDomainMask).first!
     }
     
