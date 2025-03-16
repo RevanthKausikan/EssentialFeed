@@ -107,7 +107,7 @@ extension URLSessionHTTPClientTests {
                                      fileID: fileID, filePath: filePath, line: line, column: column)
         
         switch result {
-        case .success(let data, let response): return (data, response)
+        case .success(let response): return response
         default:
             Issue.record("expected success, but got \(result).",
                          sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
