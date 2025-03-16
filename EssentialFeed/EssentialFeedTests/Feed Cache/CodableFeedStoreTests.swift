@@ -168,7 +168,7 @@ extension CodableFeedStoreTests {
     }
     
     private var cachesDirectory: URL {
-        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        FileManager.default.urls(for: .cachesDirectory, in: .systemDomainMask).first!
     }
     
     private func makeSUT(storeURL: URL? = nil, fileID: String = #fileID, filePath: String = #filePath,
