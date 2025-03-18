@@ -28,20 +28,30 @@ final class FeedViewController: UIViewController {
 final class FeedViewControllerTests: EFTesting {
     @Test("Init does not load feed")
     func init_doesNotLoadFeed() {
-        let loader = LoaderSpy()
-        _ = FeedViewController(loader: loader)
+        let (_, loader) = makeSUT()
         
         #expect(loader.loadCallCount == 0)
     }
     
     @Test("ViewDidLoad loads feed")
     func viewDidLoad_loadsFeed() {
-        let loader = LoaderSpy()
-        let sut = FeedViewController(loader: loader)
+        let (sut, loader) = makeSUT()
         
         sut.loadViewIfNeeded()
         
         #expect(loader.loadCallCount == 1)
+    }
+}
+
+// MARK: - Helpers
+extension FeedViewControllerTests {
+    private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
+                         line: Int = #line, column: Int = #column) -> (FeedViewController, LoaderSpy) {
+        let loader = LoaderSpy()
+        let sut = FeedViewController(loader: loader)
+        trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        return (sut, loader)
     }
 }
 
