@@ -56,7 +56,7 @@ final class FeedViewControllerTests: EFTesting {
         
         sut.loadViewIfNeeded()
         
-        #expect(sut.refreshControl?.isRefreshing == true)
+        #expect(sut.isShowingLoadingIndicator)
     }
     
     @Test("viewDidLoad hides loading indicator on loader completion")
@@ -66,7 +66,7 @@ final class FeedViewControllerTests: EFTesting {
         sut.loadViewIfNeeded()
         loader.completeFeedLoading()
         
-        #expect(sut.refreshControl?.isRefreshing == false)
+        #expect(sut.isShowingLoadingIndicator)
     }
     
     @Test("User initiated feed refresh - realoads feed")
@@ -88,7 +88,7 @@ final class FeedViewControllerTests: EFTesting {
         
         sut.simulatePullToRefresh()
         
-        #expect(sut.refreshControl?.isRefreshing == true)
+        #expect(sut.isShowingLoadingIndicator)
     }
     
     @Test("User initiated feed refresh - hides loading indicator on loader completion")
@@ -99,7 +99,7 @@ final class FeedViewControllerTests: EFTesting {
         sut.simulatePullToRefresh()
         loader.completeFeedLoading()
         
-        #expect(sut.refreshControl?.isRefreshing == false)
+        #expect(sut.isShowingLoadingIndicator)
     }
 }
 
@@ -118,6 +118,10 @@ extension FeedViewControllerTests {
 fileprivate extension FeedViewController {
     func simulatePullToRefresh() {
         refreshControl?.simulatePullToRefresh()
+    }
+    
+    var isShowingLoadingIndicator: Bool {
+        refreshControl?.isRefreshing == true
     }
 }
 
