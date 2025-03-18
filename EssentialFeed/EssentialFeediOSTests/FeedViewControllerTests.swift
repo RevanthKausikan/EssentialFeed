@@ -50,18 +50,6 @@ final class FeedViewControllerTests: EFTesting {
         #expect(loader.loadCallCount == 1)
     }
     
-    @Test("Pulling to refresh loads feed")
-    func pullingToRefresh_loadsFeed() {
-        let (sut, loader) = makeSUT()
-        sut.loadViewIfNeeded()
-        
-        sut.refreshControl?.simulatePullToRefresh()
-        #expect(loader.loadCallCount == 2)
-        
-        sut.refreshControl?.simulatePullToRefresh()
-        #expect(loader.loadCallCount == 3)
-    }
-    
     @Test("viewDidLoad shows loading indicator")
     func viewDidLoad_showsLoadingIndicator() {
         let (sut, _) = makeSUT()
@@ -79,6 +67,18 @@ final class FeedViewControllerTests: EFTesting {
         loader.completeFeedLoading()
         
         #expect(sut.refreshControl?.isRefreshing == false)
+    }
+    
+    @Test("Pulling to refresh loads feed")
+    func pullingToRefresh_loadsFeed() {
+        let (sut, loader) = makeSUT()
+        sut.loadViewIfNeeded()
+        
+        sut.refreshControl?.simulatePullToRefresh()
+        #expect(loader.loadCallCount == 2)
+        
+        sut.refreshControl?.simulatePullToRefresh()
+        #expect(loader.loadCallCount == 3)
     }
 }
 
