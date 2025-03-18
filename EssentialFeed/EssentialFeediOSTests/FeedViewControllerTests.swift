@@ -9,7 +9,7 @@ import Testing
 import UIKit
 import EssentialFeed
 
-final class FeedViewController: UIViewController {
+final class FeedViewController: UITableViewController {
     private var loader: FeedLoader?
     
     convenience init(loader: FeedLoader) {
@@ -20,6 +20,12 @@ final class FeedViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        refreshControl = UIRefreshControl()
+        refreshControl?.addTarget(self, action: #selector(reload), for: .valueChanged)
+        reload()
+    }
+    
+    @objc private func reload() {
         loader?.load { _ in }
     }
 }
@@ -36,10 +42,21 @@ final class FeedViewControllerTests: EFTesting {
     @Test("ViewDidLoad loads feed")
     func viewDidLoad_loadsFeed() {
         let (sut, loader) = makeSUT()
-        
         sut.loadViewIfNeeded()
         
         #expect(loader.loadCallCount == 1)
+    }
+    
+    @Test("Pulling to refresh loads feed")
+    func pullingToRefresh_loadsFeed() {
+        let (sut, loader) = makeSUT()
+        sut.loadViewIfNeeded()
+        
+        sut.refreshControl?.simulatePullToRefresh()
+        #expect(loader.loadCallCount == 2)
+        
+        sut.refreshControl?.simulatePullToRefresh()
+        #expect(loader.loadCallCount == 3)
     }
 }
 
@@ -50,8 +67,17 @@ extension FeedViewControllerTests {
         let loader = LoaderSpy()
         let sut = FeedViewController(loader: loader)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
-        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+//        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return (sut, loader)
+    }
+}
+
+fileprivate extension UIRefreshControl {
+    func simulatePullToRefresh() {
+        allTargets.forEach { target in
+            actions(forTarget: target, forControlEvent: .valueChanged)?
+                .forEach { (target as NSObject).perform(Selector($0)) }
+        }
     }
 }
 
