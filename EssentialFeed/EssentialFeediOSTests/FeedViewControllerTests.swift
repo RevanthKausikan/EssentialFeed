@@ -22,11 +22,11 @@ final class FeedViewController: UITableViewController {
         
         refreshControl = UIRefreshControl()
         refreshControl?.addTarget(self, action: #selector(load), for: .valueChanged)
-        refreshControl?.beginRefreshing()
         load()
     }
     
     @objc private func load() {
+        refreshControl?.beginRefreshing()
         loader?.load { [weak self] _ in
             self?.refreshControl?.endRefreshing()
         }
@@ -35,71 +35,36 @@ final class FeedViewController: UITableViewController {
 
 @MainActor
 final class FeedViewControllerTests: EFTesting {
-    @Test("Init does not load feed")
-    func init_doesNotLoadFeed() {
-        let (_, loader) = makeSUT()
-        
+    @Test("Load feed action - request feed from loader")
+    func loadFeedAction_requestsFeedFromLoader() {
+        let (sut, loader) = makeSUT()
         #expect(loader.loadCallCount == 0)
-    }
     
-    @Test("ViewDidLoad loads feed")
-    func viewDidLoad_loadsFeed() {
-        let (sut, loader) = makeSUT()
         sut.loadViewIfNeeded()
-        
         #expect(loader.loadCallCount == 1)
-    }
-    
-    @Test("viewDidLoad shows loading indicator")
-    func viewDidLoad_showsLoadingIndicator() {
-        let (sut, _) = makeSUT()
         
-        sut.loadViewIfNeeded()
-        
-        #expect(sut.isShowingLoadingIndicator)
-    }
-    
-    @Test("viewDidLoad hides loading indicator on loader completion")
-    func viewDidLoad_hidesLoadingIndicatorOnLoaderCompletion() {
-        let (sut, loader) = makeSUT()
-        
-        sut.loadViewIfNeeded()
-        loader.completeFeedLoading()
-        
-        #expect(sut.isShowingLoadingIndicator)
-    }
-    
-    @Test("User initiated feed refresh - realoads feed")
-    func userInitiatedFeedRefresh_reloadsFeed() {
-        let (sut, loader) = makeSUT()
-        sut.loadViewIfNeeded()
-        
-        sut.simulatePullToRefresh()
+        sut.simulateUserInitiatedReload()
         #expect(loader.loadCallCount == 2)
         
-        sut.simulatePullToRefresh()
+        sut.simulateUserInitiatedReload()
         #expect(loader.loadCallCount == 3)
     }
     
-    @Test("User initiated feed refresh - shows loading indicator")
-    func userInitiatedFeedRefresh_showsLoadingIndicator() {
-        let (sut, _) = makeSUT()
-        sut.loadViewIfNeeded()
-        
-        sut.simulatePullToRefresh()
-        
-        #expect(sut.isShowingLoadingIndicator)
-    }
-    
-    @Test("User initiated feed refresh - hides loading indicator on loader completion")
-    func userInitiatedFeedRefresh_hidesLoadingIndicatorOnLoaderCompletion() {
+    @Test("Loading feed indicator - is visible while loading")
+    func loadingFeedIndicator_isVisibleWhileLoading() {
         let (sut, loader) = makeSUT()
+        
         sut.loadViewIfNeeded()
-        
-        sut.simulatePullToRefresh()
-        loader.completeFeedLoading()
-        
         #expect(sut.isShowingLoadingIndicator)
+    
+        loader.completeFeedLoading(at: 0)
+        #expect(!sut.isShowingLoadingIndicator)
+        
+        sut.simulateUserInitiatedReload()
+        #expect(sut.isShowingLoadingIndicator)
+        
+        loader.completeFeedLoading(at: 1)
+        #expect(!sut.isShowingLoadingIndicator)
     }
 }
 
@@ -110,13 +75,13 @@ extension FeedViewControllerTests {
         let loader = LoaderSpy()
         let sut = FeedViewController(loader: loader)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
-//        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return (sut, loader)
     }
 }
 
 fileprivate extension FeedViewController {
-    func simulatePullToRefresh() {
+    func simulateUserInitiatedReload() {
         refreshControl?.simulatePullToRefresh()
     }
     
@@ -142,7 +107,7 @@ final class LoaderSpy: FeedLoader {
         completions.append(completion)
     }
     
-    func completeFeedLoading() {
+    func completeFeedLoading(at index: Int) {
         completions[0](.success([]))
     }
 }
