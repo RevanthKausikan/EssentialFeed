@@ -80,6 +80,17 @@ final class FeedViewControllerTests: EFTesting {
         sut.refreshControl?.simulatePullToRefresh()
         #expect(loader.loadCallCount == 3)
     }
+    
+    @Test("Pull to refresh hides loading indicator on loader completion")
+    func pullingToRefresh_hidesLoadingIndicatorOnLoaderCompletion() {
+        let (sut, loader) = makeSUT()
+        sut.loadViewIfNeeded()
+        
+        sut.refreshControl?.simulatePullToRefresh()
+        loader.completeFeedLoading()
+        
+        #expect(sut.refreshControl?.isRefreshing == false)
+    }
 }
 
 // MARK: - Helpers
