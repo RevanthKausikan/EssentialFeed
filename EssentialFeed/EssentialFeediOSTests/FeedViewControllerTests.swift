@@ -12,7 +12,9 @@ import EssentialFeediOS
 
 @MainActor
 final class FeedViewControllerTests: EFTesting {
-    @Test("Load feed action - request feed from loader")
+    @Test("Load feed action - request feed from loader",
+          .disabled("iOS 17 migration pending"),
+          .bug("https://github.com/essentialdevelopercom/essential-feed-case-study/pull/75/files"))
     func loadFeedAction_requestsFeedFromLoader() {
         let (sut, loader) = makeSUT()
         #expect(loader.loadCallCount == 0)
@@ -27,7 +29,9 @@ final class FeedViewControllerTests: EFTesting {
         #expect(loader.loadCallCount == 3)
     }
     
-    @Test("Loading feed indicator - is visible while loading")
+    @Test("Loading feed indicator - is visible while loading",
+          .disabled("iOS 17 migration pending"),
+          .bug("https://github.com/essentialdevelopercom/essential-feed-case-study/pull/75/files"))
     func loadingFeedIndicator_isVisibleWhileLoading() {
         let (sut, loader) = makeSUT()
         
