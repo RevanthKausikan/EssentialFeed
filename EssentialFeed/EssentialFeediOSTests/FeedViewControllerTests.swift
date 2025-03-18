@@ -69,24 +69,34 @@ final class FeedViewControllerTests: EFTesting {
         #expect(sut.refreshControl?.isRefreshing == false)
     }
     
-    @Test("Pulling to refresh loads feed")
-    func pullingToRefresh_loadsFeed() {
+    @Test("User initiated feed refresh - realoads feed")
+    func userInitiatedFeedRefresh_reloadsFeed() {
         let (sut, loader) = makeSUT()
         sut.loadViewIfNeeded()
         
-        sut.refreshControl?.simulatePullToRefresh()
+        sut.simulatePullToRefresh()
         #expect(loader.loadCallCount == 2)
         
-        sut.refreshControl?.simulatePullToRefresh()
+        sut.simulatePullToRefresh()
         #expect(loader.loadCallCount == 3)
     }
     
-    @Test("Pull to refresh hides loading indicator on loader completion")
-    func pullingToRefresh_hidesLoadingIndicatorOnLoaderCompletion() {
+    @Test("User initiated feed refresh - shows loading indicator")
+    func userInitiatedFeedRefresh_showsLoadingIndicator() {
+        let (sut, _) = makeSUT()
+        sut.loadViewIfNeeded()
+        
+        sut.simulatePullToRefresh()
+        
+        #expect(sut.refreshControl?.isRefreshing == true)
+    }
+    
+    @Test("User initiated feed refresh - hides loading indicator on loader completion")
+    func userInitiatedFeedRefresh_hidesLoadingIndicatorOnLoaderCompletion() {
         let (sut, loader) = makeSUT()
         sut.loadViewIfNeeded()
         
-        sut.refreshControl?.simulatePullToRefresh()
+        sut.simulatePullToRefresh()
         loader.completeFeedLoading()
         
         #expect(sut.refreshControl?.isRefreshing == false)
@@ -102,6 +112,12 @@ extension FeedViewControllerTests {
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
 //        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return (sut, loader)
+    }
+}
+
+fileprivate extension FeedViewController {
+    func simulatePullToRefresh() {
+        refreshControl?.simulatePullToRefresh()
     }
 }
 
