@@ -21,12 +21,15 @@ final class FeedViewController: UITableViewController {
         super.viewDidLoad()
         
         refreshControl = UIRefreshControl()
-        refreshControl?.addTarget(self, action: #selector(reload), for: .valueChanged)
-        reload()
+        refreshControl?.addTarget(self, action: #selector(load), for: .valueChanged)
+        refreshControl?.beginRefreshing()
+        load()
     }
     
-    @objc private func reload() {
-        loader?.load { _ in }
+    @objc private func load() {
+        loader?.load { [weak self] _ in
+            self?.refreshControl?.endRefreshing()
+        }
     }
 }
 
@@ -58,6 +61,25 @@ final class FeedViewControllerTests: EFTesting {
         sut.refreshControl?.simulatePullToRefresh()
         #expect(loader.loadCallCount == 3)
     }
+    
+    @Test("viewDidLoad shows loading indicator")
+    func viewDidLoad_showsLoadingIndicator() {
+        let (sut, _) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        
+        #expect(sut.refreshControl?.isRefreshing == true)
+    }
+    
+    @Test("viewDidLoad hides loading indicator on loader completion")
+    func viewDidLoad_hidesLoadingIndicatorOnLoaderCompletion() {
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading()
+        
+        #expect(sut.refreshControl?.isRefreshing == false)
+    }
 }
 
 // MARK: - Helpers
@@ -82,9 +104,14 @@ fileprivate extension UIRefreshControl {
 }
 
 final class LoaderSpy: FeedLoader {
-    private(set) var loadCallCount = 0
+    private var completions: [(FeedLoader.Result) -> Void] = []
+    var loadCallCount: Int { completions.count }
     
     func load(completion: @escaping (FeedLoader.Result) -> Void) {
-        loadCallCount += 1
+        completions.append(completion)
+    }
+    
+    func completeFeedLoading() {
+        completions[0](.success([]))
     }
 }
