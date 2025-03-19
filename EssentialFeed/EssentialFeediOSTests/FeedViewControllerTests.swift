@@ -181,6 +181,21 @@ final class FeedViewControllerTests: EFTesting {
         #expect(view0?.isShowingRetryAction == false)
         #expect(view1?.isShowingRetryAction == true)
     }
+    
+    @Test("Feed image view retry button - is visible on invalid image data")
+    func feedImageViewRetryButton_isVisibleOnInvalidImageData() throws {
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [makeImage()])
+        
+        let view = sut.simulateFeedImageViewVisible(at: 0)
+        #expect(view?.isShowingRetryAction == false)
+        
+        let invalidImageData = Data("invalid image data".utf8)
+        loader.completeImageLoading(with: invalidImageData, at: 0)
+        #expect(view?.isShowingRetryAction == true)
+    }
 }
 
 // MARK: - Helpers
