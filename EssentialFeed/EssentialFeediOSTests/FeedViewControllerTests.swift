@@ -158,7 +158,28 @@ final class FeedViewControllerTests: EFTesting {
         loader.completeImageLoading(with: imageData1, at: 1)
         #expect(view0?.renderedImage == imageData0)
         #expect(view1?.renderedImage == imageData1)
+    }
+    
+    @Test("Feed image view retry button - is visible on image URL load error")
+    func feedImageViewRetryButton_isVisibleOnImageURLLoadError() throws {
+        let (sut, loader) = makeSUT()
         
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [makeImage(), makeImage()])
+        
+        let view0 = sut.simulateFeedImageViewVisible(at: 0)
+        let view1 = sut.simulateFeedImageViewVisible(at: 1)
+        #expect(view0?.isShowingRetryAction == false)
+        #expect(view1?.isShowingRetryAction == false)
+        
+        let imageData = UIImage.make(withColor: .red).pngData()!
+        loader.completeImageLoading(with: imageData, at: 0)
+        #expect(view0?.isShowingRetryAction == false)
+        #expect(view1?.isShowingRetryAction == false)
+        
+        loader.completeImageLoadingWithError(at: 1)
+        #expect(view0?.isShowingRetryAction == false)
+        #expect(view1?.isShowingRetryAction == true)
     }
 }
 
@@ -238,6 +259,7 @@ fileprivate extension FeedImageCell {
     var locationText: String? { locationLabel.text }
     var descriptionText: String? { descriptionLabel.text }
     var isShowingImageLoadingIndicator: Bool { feedImageContainer.isShimmering }
+    var isShowingRetryAction: Bool { !feedImageRetryButton.isHidden }
     var renderedImage: Data? { feedImageView.image?.pngData() }
 }
 
