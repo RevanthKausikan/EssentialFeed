@@ -237,6 +237,23 @@ final class FeedViewControllerTests: EFTesting {
         sut.simulateFeedImageNearVisible(at: 1)
         #expect(loader.loadedImageURLs == [image0.url, image1.url])
     }
+    
+    @Test("Feed image view - cancels image URL preloading when not visible anymore")
+    func feedImageView_cancelsImageURLPreloadingWhenNotVisibleAnymore() throws {
+        let image0 = makeImage(url: URL(string: "https://example.com/image0")!)
+        let image1 = makeImage(url: URL(string: "https://example.com/image1")!)
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [image0, image1])
+        #expect(loader.cancelledImageURLs == [])
+        
+        sut.simulateFeedImageViewNotNearVisible(at: 0)
+        #expect(loader.cancelledImageURLs == [image0.url])
+        
+        sut.simulateFeedImageViewNotNearVisible(at: 1)
+        #expect(loader.cancelledImageURLs == [image0.url, image1.url])
+    }
 }
 
 // MARK: - Helpers
@@ -285,6 +302,12 @@ fileprivate extension FeedViewController {
         feedImageView(at: index) as? FeedImageCell
     }
     
+    func feedImageView(at row: Int) -> UITableViewCell? {
+        let ds = tableView.dataSource
+        let index = IndexPath(row: row, section: feedImagesSection)
+        return ds?.tableView(tableView, cellForRowAt: index)
+    }
+    
     func simulateFeedImageViewNotVisible(at row: Int) {
         let view = simulateFeedImageViewVisible(at: row)
         
@@ -299,18 +322,20 @@ fileprivate extension FeedViewController {
         ds?.tableView(tableView, prefetchRowsAt: [index])
     }
     
+    func simulateFeedImageViewNotNearVisible(at row: Int) {
+        simulateFeedImageNearVisible(at: row)
+        
+        let ds = tableView.prefetchDataSource
+        let index = IndexPath(row: row, section: feedImagesSection)
+        ds?.tableView?(tableView, cancelPrefetchingForRowsAt: [index])
+    }
+    
     var isShowingLoadingIndicator: Bool {
         refreshControl?.isRefreshing == true
     }
     
     var numberOfRenderedFeedImageViews: Int {
         tableView.numberOfRows(inSection: feedImagesSection)
-    }
-    
-    func feedImageView(at row: Int) -> UITableViewCell? {
-        let ds = tableView.dataSource
-        let index = IndexPath(row: row, section: feedImagesSection)
-        return ds?.tableView(tableView, cellForRowAt: index)
     }
     
     private var feedImagesSection: Int { 0 }
