@@ -18,7 +18,7 @@ final class FeedViewControllerTests: EFTesting {
     func loadFeedAction_requestsFeedFromLoader() {
         let (sut, loader) = makeSUT()
         #expect(loader.loadFeedCallCount == 0)
-    
+        
         sut.loadViewIfNeeded()
         #expect(loader.loadFeedCallCount == 1)
         
@@ -37,7 +37,7 @@ final class FeedViewControllerTests: EFTesting {
         
         sut.loadViewIfNeeded()
         #expect(sut.isShowingLoadingIndicator)
-    
+        
         loader.completeFeedLoading(at: 0)
         #expect(!sut.isShowingLoadingIndicator)
         
@@ -136,6 +136,30 @@ final class FeedViewControllerTests: EFTesting {
         #expect(view0?.isShowingImageLoadingIndicator == false)
         #expect(view1?.isShowingImageLoadingIndicator == false)
     }
+    
+    @Test("Feed image view - renders image loaded from URL")
+    func feedImageView_rendersImageLoadedFromURL() throws {
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [makeImage(), makeImage()])
+        
+        let view0 = sut.simulateFeedImageViewVisible(at: 0)
+        let view1 = sut.simulateFeedImageViewVisible(at: 1)
+        #expect(view0?.renderedImage == .none)
+        #expect(view1?.renderedImage == .none)
+        
+        let imageData0 = UIImage.make(withColor: .red).pngData()!
+        loader.completeImageLoading(with: imageData0, at: 0)
+        #expect(view0?.renderedImage == imageData0)
+        #expect(view1?.renderedImage == .none)
+        
+        let imageData1 = UIImage.make(withColor: .blue).pngData()!
+        loader.completeImageLoading(with: imageData1, at: 1)
+        #expect(view0?.renderedImage == imageData0)
+        #expect(view1?.renderedImage == imageData1)
+        
+    }
 }
 
 // MARK: - Helpers
@@ -145,7 +169,7 @@ extension FeedViewControllerTests {
         let loader = LoaderSpy()
         let sut = FeedViewController(feedLoader: loader, imageLoader: loader)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
-//        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
+        //        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return (sut, loader)
     }
     
@@ -214,6 +238,7 @@ fileprivate extension FeedImageCell {
     var locationText: String? { locationLabel.text }
     var descriptionText: String? { descriptionLabel.text }
     var isShowingImageLoadingIndicator: Bool { feedImageContainer.isShimmering }
+    var renderedImage: Data? { feedImageView.image?.pngData() }
 }
 
 fileprivate extension UIRefreshControl {
@@ -268,5 +293,18 @@ extension LoaderSpy: FeedImageDataLoader {
     func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result) -> Void) -> FeedImageDataLoaderTask {
         imageRequests.append((url, completion))
         return TaskSpy { [weak self] in self?.cancelledImageURLs.append(url) }
+    }
+}
+
+private extension UIImage {
+    static func make(withColor color: UIColor) -> UIImage {
+        let rect = CGRect(x: 0, y: 0, width: 1, height: 1)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        
+        return UIGraphicsImageRenderer(size: rect.size, format: format).image { rendererContext in
+            color.setFill()
+            rendererContext.fill(rect)
+        }
     }
 }
