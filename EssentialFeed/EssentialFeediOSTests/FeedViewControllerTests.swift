@@ -196,6 +196,30 @@ final class FeedViewControllerTests: EFTesting {
         loader.completeImageLoading(with: invalidImageData, at: 0)
         #expect(view?.isShowingRetryAction == true)
     }
+    
+    @Test("Feed image view retry action - retires image load")
+    func feedImageViewRetryAction_retriesImageLoad() throws {
+        let image0 = makeImage(url: URL(string: "https://example.com/image0")!)
+        let image1 = makeImage(url: URL(string: "https://example.com/image1")!)
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [image0, image1])
+        
+        let view0 = sut.simulateFeedImageViewVisible(at: 0)
+        let view1 = sut.simulateFeedImageViewVisible(at: 1)
+        #expect(loader.loadedImageURLs == [image0.url, image1.url])
+        
+        loader.completeImageLoadingWithError(at: 0)
+        loader.completeImageLoadingWithError(at: 1)
+        #expect(loader.loadedImageURLs == [image0.url, image1.url])
+        
+        view0?.simulateRetryAction()
+        #expect(loader.loadedImageURLs == [image0.url, image1.url, image0.url])
+        
+        view1?.simulateRetryAction()
+        #expect(loader.loadedImageURLs == [image0.url, image1.url, image0.url, image1.url])
+    }
 }
 
 // MARK: - Helpers
@@ -276,6 +300,18 @@ fileprivate extension FeedImageCell {
     var isShowingImageLoadingIndicator: Bool { feedImageContainer.isShimmering }
     var isShowingRetryAction: Bool { !feedImageRetryButton.isHidden }
     var renderedImage: Data? { feedImageView.image?.pngData() }
+    func simulateRetryAction() {
+        feedImageRetryButton.simulateTap()
+    }
+}
+
+fileprivate extension UIButton {
+    func simulateTap() {
+        allTargets.forEach { target in
+            actions(forTarget: target, forControlEvent: .touchUpInside)?
+                .forEach { (target as NSObject).perform(Selector($0)) }
+        }
+    }
 }
 
 fileprivate extension UIRefreshControl {
