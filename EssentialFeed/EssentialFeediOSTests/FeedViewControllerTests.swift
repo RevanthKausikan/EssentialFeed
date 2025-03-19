@@ -44,7 +44,7 @@ final class FeedViewControllerTests: EFTesting {
         sut.simulateUserInitiatedReload()
         #expect(sut.isShowingLoadingIndicator)
         
-        loader.completeFeedLoading(at: 1)
+        loader.completeFeedLoadingWithError(at: 1)
         #expect(!sut.isShowingLoadingIndicator)
     }
     
