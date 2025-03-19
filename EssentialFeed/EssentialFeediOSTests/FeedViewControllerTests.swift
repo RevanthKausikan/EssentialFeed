@@ -98,6 +98,23 @@ final class FeedViewControllerTests: EFTesting {
         sut.simulateFeedImageViewVisible(at: 1)
         #expect(loader.loadedImageURLs == [image0.url, image1.url])
     }
+    
+    @Test("Feed image view - cancels image loading when not visible anymore")
+    func feedImageView_cancelsImageLoadingWhenNotVisibleAnymore() throws {
+        let image0 = makeImage(url: URL(string: "https://example.com/image0")!)
+        let image1 = makeImage(url: URL(string: "https://example.com/image1")!)
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [image0, image1])
+        #expect(loader.cancelledImageURLs == [])
+        
+        sut.simulateFeedImageViewNotVisible(at: 0)
+        #expect(loader.cancelledImageURLs == [image0.url])
+        
+        sut.simulateFeedImageViewNotVisible(at: 1)
+        #expect(loader.cancelledImageURLs == [image0.url, image1.url])
+    }
 }
 
 // MARK: - Helpers
@@ -141,8 +158,17 @@ fileprivate extension FeedViewController {
         refreshControl?.simulatePullToRefresh()
     }
     
-    func simulateFeedImageViewVisible(at index: Int) {
-        _ = feedImageView(at: index)
+    @discardableResult
+    func simulateFeedImageViewVisible(at index: Int) -> FeedImageCell? {
+        feedImageView(at: index) as? FeedImageCell
+    }
+    
+    func simulateFeedImageViewNotVisible(at row: Int) {
+        let view = simulateFeedImageViewVisible(at: row)
+        
+        let delegate = tableView.delegate
+        let index = IndexPath(row: row, section: feedImagesSection)
+        delegate?.tableView?(tableView, didEndDisplaying: view!, forRowAt: index)
     }
     
     var isShowingLoadingIndicator: Bool {
@@ -181,6 +207,7 @@ final class LoaderSpy: FeedLoader {
     private var feedRequests: [(FeedLoader.Result) -> Void] = []
     var loadFeedCallCount: Int { feedRequests.count }
     private(set) var loadedImageURLs = [URL]()
+    private(set) var cancelledImageURLs = [URL]()
     
     func load(completion: @escaping (FeedLoader.Result) -> Void) {
         feedRequests.append(completion)
@@ -199,5 +226,9 @@ final class LoaderSpy: FeedLoader {
 extension LoaderSpy: FeedImageDataLoader {
     func loadImageData(from url: URL) {
         loadedImageURLs.append(url)
+    }
+    
+    func cancelImageDataLoad(from url: URL) {
+        cancelledImageURLs.append(url)
     }
 }
