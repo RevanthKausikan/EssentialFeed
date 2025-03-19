@@ -17,16 +17,16 @@ final class FeedViewControllerTests: EFTesting {
           .bug("https://github.com/essentialdevelopercom/essential-feed-case-study/pull/75/files"))
     func loadFeedAction_requestsFeedFromLoader() {
         let (sut, loader) = makeSUT()
-        #expect(loader.loadCallCount == 0)
+        #expect(loader.loadFeedCallCount == 0)
     
         sut.loadViewIfNeeded()
-        #expect(loader.loadCallCount == 1)
+        #expect(loader.loadFeedCallCount == 1)
         
         sut.simulateUserInitiatedReload()
-        #expect(loader.loadCallCount == 2)
+        #expect(loader.loadFeedCallCount == 2)
         
         sut.simulateUserInitiatedReload()
-        #expect(loader.loadCallCount == 3)
+        #expect(loader.loadFeedCallCount == 3)
     }
     
     @Test("Loading feed indicator - is visible while loading",
@@ -80,6 +80,24 @@ final class FeedViewControllerTests: EFTesting {
         loader.completeFeedLoadingWithError(at: 1)
         try assertThat(sut, isRendering: [image0])
     }
+    
+    @Test("Feed image view - loads image URL when visible")
+    func feedImageView_loadsImageURLWhenVisible() throws {
+        let image0 = makeImage(url: URL(string: "https://example.com/image0")!)
+        let image1 = makeImage(url: URL(string: "https://example.com/image1")!)
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [image0, image1])
+        #expect(loader.loadedImageURLs == [])
+        
+        
+        sut.simulateFeedImageViewVisible(at: 0)
+        #expect(loader.loadedImageURLs == [image0.url])
+        
+        sut.simulateFeedImageViewVisible(at: 1)
+        #expect(loader.loadedImageURLs == [image0.url, image1.url])
+    }
 }
 
 // MARK: - Helpers
@@ -87,7 +105,7 @@ extension FeedViewControllerTests {
     private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
                          line: Int = #line, column: Int = #column) -> (FeedViewController, LoaderSpy) {
         let loader = LoaderSpy()
-        let sut = FeedViewController(loader: loader)
+        let sut = FeedViewController(feedLoader: loader, imageLoader: loader)
         trackForMemoryLeak(sut, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
 //        trackForMemoryLeak(loader, sourceLocation: .init(fileID: fileID, filePath: filePath, line: line, column: column))
         return (sut, loader)
@@ -123,6 +141,10 @@ fileprivate extension FeedViewController {
         refreshControl?.simulatePullToRefresh()
     }
     
+    func simulateFeedImageViewVisible(at index: Int) {
+        _ = feedImageView(at: index)
+    }
+    
     var isShowingLoadingIndicator: Bool {
         refreshControl?.isRefreshing == true
     }
@@ -156,19 +178,26 @@ fileprivate extension UIRefreshControl {
 }
 
 final class LoaderSpy: FeedLoader {
-    private var completions: [(FeedLoader.Result) -> Void] = []
-    var loadCallCount: Int { completions.count }
+    private var feedRequests: [(FeedLoader.Result) -> Void] = []
+    var loadFeedCallCount: Int { feedRequests.count }
+    private(set) var loadedImageURLs = [URL]()
     
     func load(completion: @escaping (FeedLoader.Result) -> Void) {
-        completions.append(completion)
+        feedRequests.append(completion)
     }
     
-    func completeFeedLoading(with feedImages: [FeedImage] = [], at index: Int) {
-        completions[index](.success(feedImages))
+    func completeFeedLoading(with feedImages: [FeedImage] = [], at index: Int = 0) {
+        feedRequests[index](.success(feedImages))
     }
     
     func completeFeedLoadingWithError(at index: Int) {
         let error = NSError(domain: "an error", code: 0)
-        completions[index](.failure(error))
+        feedRequests[index](.failure(error))
+    }
+}
+
+extension LoaderSpy: FeedImageDataLoader {
+    func loadImageData(from url: URL) {
+        loadedImageURLs.append(url)
     }
 }
