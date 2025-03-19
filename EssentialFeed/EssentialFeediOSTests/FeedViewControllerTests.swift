@@ -115,6 +115,27 @@ final class FeedViewControllerTests: EFTesting {
         sut.simulateFeedImageViewNotVisible(at: 1)
         #expect(loader.cancelledImageURLs == [image0.url, image1.url])
     }
+    
+    @Test("Feed image view loading indicator - is visible while loading image")
+    func feedImageViewLoadingIndicator_isVisibleWhileLoadingImage() throws {
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [makeImage(), makeImage()])
+        
+        let view0 = sut.simulateFeedImageViewVisible(at: 0)
+        let view1 = sut.simulateFeedImageViewVisible(at: 1)
+        #expect(view0?.isShowingImageLoadingIndicator == true)
+        #expect(view1?.isShowingImageLoadingIndicator == true)
+        
+        loader.completeImageLoading(at: 0)
+        #expect(view0?.isShowingImageLoadingIndicator == false)
+        #expect(view1?.isShowingImageLoadingIndicator == true)
+        
+        loader.completeImageLoadingWithError(at: 1)
+        #expect(view0?.isShowingImageLoadingIndicator == false)
+        #expect(view1?.isShowingImageLoadingIndicator == false)
+    }
 }
 
 // MARK: - Helpers
@@ -192,6 +213,7 @@ fileprivate extension FeedImageCell {
     var isShowingLocation: Bool { !locationContainer.isHidden }
     var locationText: String? { locationLabel.text }
     var descriptionText: String? { descriptionLabel.text }
+    var isShowingImageLoadingIndicator: Bool { feedImageContainer.isShimmering }
 }
 
 fileprivate extension UIRefreshControl {
@@ -206,7 +228,9 @@ fileprivate extension UIRefreshControl {
 final class LoaderSpy: FeedLoader {
     private var feedRequests: [(FeedLoader.Result) -> Void] = []
     var loadFeedCallCount: Int { feedRequests.count }
-    private(set) var loadedImageURLs = [URL]()
+    
+    private var imageRequests = [(url: URL, completion: (FeedImageDataLoader.Result) -> Void)]()
+    var loadedImageURLs: [URL] { imageRequests.map { $0.url } }
     private(set) var cancelledImageURLs = [URL]()
     
     func load(completion: @escaping (FeedLoader.Result) -> Void) {
@@ -221,6 +245,15 @@ final class LoaderSpy: FeedLoader {
         let error = NSError(domain: "an error", code: 0)
         feedRequests[index](.failure(error))
     }
+    
+    func completeImageLoading(with imageData: Data = Data(), at index: Int = 0) {
+        imageRequests[index].completion(.success(imageData))
+    }
+    
+    func completeImageLoadingWithError(at index: Int = 0) {
+        let error = NSError(domain: "an error", code: 0)
+        imageRequests[index].completion(.failure(error))
+    }
 }
 
 extension LoaderSpy: FeedImageDataLoader {
@@ -232,8 +265,8 @@ extension LoaderSpy: FeedImageDataLoader {
         }
     }
     
-    func loadImageData(from url: URL) -> FeedImageDataLoaderTask {
-        loadedImageURLs.append(url)
+    func loadImageData(from url: URL, completion: @escaping (FeedImageDataLoader.Result) -> Void) -> FeedImageDataLoaderTask {
+        imageRequests.append((url, completion))
         return TaskSpy { [weak self] in self?.cancelledImageURLs.append(url) }
     }
 }
