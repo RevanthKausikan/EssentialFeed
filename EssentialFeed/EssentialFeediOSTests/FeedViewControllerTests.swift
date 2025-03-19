@@ -220,6 +220,23 @@ final class FeedViewControllerTests: EFTesting {
         view1?.simulateRetryAction()
         #expect(loader.loadedImageURLs == [image0.url, image1.url, image0.url, image1.url])
     }
+    
+    @Test("Feed image view - preloads image URL with near visible")
+    func feedImageView_preloadsImageURLWithNearVisible() throws {
+        let image0 = makeImage(url: URL(string: "https://example.com/image0")!)
+        let image1 = makeImage(url: URL(string: "https://example.com/image1")!)
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [image0, image1])
+        #expect(loader.loadedImageURLs == [])
+        
+        sut.simulateFeedImageNearVisible(at: 0)
+        #expect(loader.loadedImageURLs == [image0.url])
+        
+        sut.simulateFeedImageNearVisible(at: 1)
+        #expect(loader.loadedImageURLs == [image0.url, image1.url])
+    }
 }
 
 // MARK: - Helpers
@@ -274,6 +291,12 @@ fileprivate extension FeedViewController {
         let delegate = tableView.delegate
         let index = IndexPath(row: row, section: feedImagesSection)
         delegate?.tableView?(tableView, didEndDisplaying: view!, forRowAt: index)
+    }
+    
+    func simulateFeedImageNearVisible(at row: Int) {
+        let ds = tableView.prefetchDataSource
+        let index = IndexPath(row: row, section: feedImagesSection)
+        ds?.tableView(tableView, prefetchRowsAt: [index])
     }
     
     var isShowingLoadingIndicator: Bool {
