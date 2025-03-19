@@ -66,6 +66,20 @@ final class FeedViewControllerTests: EFTesting {
         loader.completeFeedLoading(with: [image0, image1, image2, image3], at: 1)
         try assertThat(sut, isRendering: [image0, image1, image2, image3])
     }
+    
+    @Test("Load feed completion - does not alter current rendering state on error")
+    func loadFeedCompletion_doesNotAlterCurrentRenderingStateOnError() throws {
+        let image0 = makeImage(description: "a description", location: "a location")
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [image0], at: 0)
+        try assertThat(sut, isRendering: [image0])
+        
+        sut.simulateUserInitiatedReload()
+        loader.completeFeedLoadingWithError(at: 1)
+        try assertThat(sut, isRendering: [image0])
+    }
 }
 
 // MARK: - Helpers
@@ -151,5 +165,10 @@ final class LoaderSpy: FeedLoader {
     
     func completeFeedLoading(with feedImages: [FeedImage] = [], at index: Int) {
         completions[index](.success(feedImages))
+    }
+    
+    func completeFeedLoadingWithError(at index: Int) {
+        let error = NSError(domain: "an error", code: 0)
+        completions[index](.failure(error))
     }
 }
