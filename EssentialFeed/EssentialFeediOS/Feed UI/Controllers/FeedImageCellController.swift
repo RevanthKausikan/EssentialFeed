@@ -28,7 +28,7 @@ final class FeedImageCellController {
         viewModel.cancelImageDataLoad()
     }
     
-    func binded(_ cell: FeedImageCell) -> UITableViewCell {
+    private func binded(_ cell: FeedImageCell) -> FeedImageCell {
         cell.locationContainer.isHidden = !viewModel.hasLocation
         cell.locationLabel.text = viewModel.location
         cell.descriptionLabel.text = viewModel.description
@@ -39,7 +39,7 @@ final class FeedImageCellController {
         }
         
         viewModel.onImageLoadingStateChange = { [weak cell] isLoading in
-            cell?.feedImageView.isShimmering = isLoading
+            cell?.feedImageContainer.isShimmering = isLoading
         }
         
         viewModel.onShouldRetryImageLoadStateChange = { [weak cell] shouldRetry in
