@@ -1,5 +1,5 @@
 //
-//  FeedViewControllerTests.swift
+//  FeedUIIntegrationTests.swift
 //  EssentialFeed
 //
 //  Created by Revanth Kausikan on 18/03/25.
@@ -11,7 +11,7 @@ import EssentialFeed
 import EssentialFeediOS
 
 @MainActor
-final class FeedViewControllerTests: EFTesting {
+final class FeedUIIntegrationTests: EFTesting {
     
     @Test("Feed view has title")
     func feedView_hasTitle() throws {
@@ -280,7 +280,7 @@ final class FeedViewControllerTests: EFTesting {
 }
 
 // MARK: - Helpers
-extension FeedViewControllerTests {
+extension FeedUIIntegrationTests {
     private var anyImageData: Data { UIImage.make(withColor: .red).pngData()! }
     
     private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
