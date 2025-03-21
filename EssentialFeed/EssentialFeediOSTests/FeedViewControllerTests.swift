@@ -16,8 +16,15 @@ final class FeedViewControllerTests: EFTesting {
     @Test("Feed view has title")
     func feedView_hasTitle() {
         let (sut, _) = makeSUT()
+        
         sut.loadViewIfNeeded()
-        #expect(sut.title == "My feed")
+        
+        let bundle = Bundle(for: FeedViewController.self)
+        let localizedKey = "FEED_VIEW_TITLE"
+        let localizedTitle = bundle.localizedString(forKey: localizedKey, value: nil, table: "Feed")
+        
+        #expect(localizedKey != localizedTitle)
+        #expect(sut.title == localizedTitle)
     }
     
     @Test("Load feed action - request feed from loader",
