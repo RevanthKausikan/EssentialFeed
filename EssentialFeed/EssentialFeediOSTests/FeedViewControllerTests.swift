@@ -14,16 +14,12 @@ import EssentialFeediOS
 final class FeedViewControllerTests: EFTesting {
     
     @Test("Feed view has title")
-    func feedView_hasTitle() {
+    func feedView_hasTitle() throws {
         let (sut, _) = makeSUT()
         
         sut.loadViewIfNeeded()
         
-        let bundle = Bundle(for: FeedViewController.self)
-        let localizedKey = "FEED_VIEW_TITLE"
-        let localizedTitle = bundle.localizedString(forKey: localizedKey, value: nil, table: "Feed")
-        
-        #expect(localizedKey != localizedTitle)
+        let localizedTitle = try localized("FEED_VIEW_TITLE")
         #expect(sut.title == localizedTitle)
     }
     
