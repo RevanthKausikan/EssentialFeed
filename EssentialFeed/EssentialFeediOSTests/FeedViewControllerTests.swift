@@ -12,6 +12,14 @@ import EssentialFeediOS
 
 @MainActor
 final class FeedViewControllerTests: EFTesting {
+    
+    @Test("Feed view has title")
+    func feedView_hasTitle() {
+        let (sut, _) = makeSUT()
+        sut.loadViewIfNeeded()
+        #expect(sut.title == "My feed")
+    }
+    
     @Test("Load feed action - request feed from loader",
           .disabled("iOS 17 migration pending"),
           .bug("https://github.com/essentialdevelopercom/essential-feed-case-study/pull/75/files"))
