@@ -277,6 +277,20 @@ final class FeedUIIntegrationTests: EFTesting {
         
         #expect(view?.renderedImage == nil)
     }
+    
+    @Test("Load feed completion - dispatches from background to main queue")
+    func loadFeedCompletion_dispatchesFromBackgroundToMainQueue() async throws {
+        let (sut, loader) = makeSUT()
+        
+        sut.loadViewIfNeeded()
+        
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global().async {
+                loader.completeFeedLoading(at: 0)
+                continuation.resume()
+            }
+        }
+    }
 }
 
 // MARK: - Helpers
