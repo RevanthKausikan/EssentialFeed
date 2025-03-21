@@ -254,10 +254,24 @@ final class FeedViewControllerTests: EFTesting {
         sut.simulateFeedImageViewNotNearVisible(at: 1)
         #expect(loader.cancelledImageURLs == [image0.url, image1.url])
     }
+    
+    @Test("Feed image view - does not render lodaded image when not visible anymore")
+    func feedImageView_doesNotRenderLodadedImageWhenNotVisibleAnymore() throws {
+        let (sut, loader) = makeSUT()
+        sut.loadViewIfNeeded()
+        loader.completeFeedLoading(with: [makeImage()])
+        
+        let view = sut.simulateFeedImageViewNotVisible(at: 0)
+        loader.completeImageLoading(with: anyImageData)
+        
+        #expect(view?.renderedImage == nil)
+    }
 }
 
 // MARK: - Helpers
 extension FeedViewControllerTests {
+    private var anyImageData: Data { UIImage.make(withColor: .red).pngData()! }
+    
     private func makeSUT(fileID: String = #fileID, filePath: String = #filePath,
                          line: Int = #line, column: Int = #column) -> (FeedViewController, LoaderSpy) {
         let loader = LoaderSpy()
@@ -308,12 +322,15 @@ fileprivate extension FeedViewController {
         return ds?.tableView(tableView, cellForRowAt: index)
     }
     
-    func simulateFeedImageViewNotVisible(at row: Int) {
+    @discardableResult
+    func simulateFeedImageViewNotVisible(at row: Int) -> FeedImageCell? {
         let view = simulateFeedImageViewVisible(at: row)
         
         let delegate = tableView.delegate
         let index = IndexPath(row: row, section: feedImagesSection)
         delegate?.tableView?(tableView, didEndDisplaying: view!, forRowAt: index)
+        
+        return view
     }
     
     func simulateFeedImageNearVisible(at row: Int) {
