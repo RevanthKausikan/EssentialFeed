@@ -369,36 +369,6 @@ fileprivate extension FeedViewController {
     private var feedImagesSection: Int { 0 }
 }
 
-fileprivate extension FeedImageCell {
-    var isShowingLocation: Bool { !locationContainer.isHidden }
-    var locationText: String? { locationLabel.text }
-    var descriptionText: String? { descriptionLabel.text }
-    var isShowingImageLoadingIndicator: Bool { feedImageContainer.isShimmering }
-    var isShowingRetryAction: Bool { !feedImageRetryButton.isHidden }
-    var renderedImage: Data? { feedImageView.image?.pngData() }
-    func simulateRetryAction() {
-        feedImageRetryButton.simulateTap()
-    }
-}
-
-fileprivate extension UIButton {
-    func simulateTap() {
-        allTargets.forEach { target in
-            actions(forTarget: target, forControlEvent: .touchUpInside)?
-                .forEach { (target as NSObject).perform(Selector($0)) }
-        }
-    }
-}
-
-fileprivate extension UIRefreshControl {
-    func simulatePullToRefresh() {
-        allTargets.forEach { target in
-            actions(forTarget: target, forControlEvent: .valueChanged)?
-                .forEach { (target as NSObject).perform(Selector($0)) }
-        }
-    }
-}
-
 final class LoaderSpy: FeedLoader {
     private var feedRequests: [(FeedLoader.Result) -> Void] = []
     var loadFeedCallCount: Int { feedRequests.count }
