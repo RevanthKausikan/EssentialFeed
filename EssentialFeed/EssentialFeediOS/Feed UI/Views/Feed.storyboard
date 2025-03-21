@@ -110,6 +110,7 @@
                         <connections>
                             <outlet property="dataSource" destination="jHU-40-Nh1" id="T1r-Va-4Ci"/>
                             <outlet property="delegate" destination="jHU-40-Nh1" id="sFP-bL-Mgf"/>
+                            <outlet property="prefetchDataSource" destination="jHU-40-Nh1" id="LZj-Vh-ToB"/>
                         </connections>
                     </tableView>
                     <refreshControl key="refreshControl" opaque="NO" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" id="pnr-Xq-RBe">
